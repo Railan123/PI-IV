@@ -1,4 +1,4 @@
-package com.pi_iv;
+package com.PI_IV;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
