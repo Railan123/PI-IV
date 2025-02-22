@@ -1,7 +1,6 @@
-package com.pi_iv.controller;
+package com.PI_IV.controller;
 import com.pi_iv.model.Usuario;
 import com.pi_iv.service.UsuarioService;
-import com.pi_iv.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

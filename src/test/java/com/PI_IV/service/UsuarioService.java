@@ -1,4 +1,4 @@
-package com.pi_iv.service;
+package com.PI_IV.service;
 
 
 
@@ -17,7 +17,7 @@ public class UsuarioService {
     // Método que vai cadastrar um novo usuário
     public Usuario cadastrarUsuario(String cpf, String nome, String email, String grupo, String senha, boolean status) {
         
-        // Cria um novo objeto Usuario com os dados fornecidos
+        // Cria um novo objeto Usaario com os dados fornecidos
         Usuario usuario = new Usuario(cpf, nome, email, grupo, senha, status);
         
         // Salva o usuário no banco de dados e retorna o usuário salvo
