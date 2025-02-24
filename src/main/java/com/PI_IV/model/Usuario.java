@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class Usuario {
 
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY) //gerar numeros aleatorios para o id
+    @GeneratedValue (strategy = GenerationType.IDENTITY) //gerar numeros sequencias para o id
     @Column (name = "id")
     private int id;
 
