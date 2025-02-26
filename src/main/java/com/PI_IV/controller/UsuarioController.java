@@ -13,25 +13,27 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/usuarios")
-@CrossOrigin(origins = "*") // Permite chamadas de qualquer frontend
+@CrossOrigin("*") // Permite chamadas de qualquer frontend
 public class UsuarioController {
+
 
     @Autowired
     private InterfaceUsuario dao;
 
     @GetMapping
-    public List<Usuario> listaUsuarios (){ //meotodo para procurar todos os usuarios do banco
-        return (List<Usuario>) dao.findAll();
+    public ResponseEntity<List<Usuario>> listaUsuarios() { //metodo para procurar todos os usuarios do banco
+        List<Usuario> lista = (List<Usuario>) dao.findAll();
+        return ResponseEntity.status(200).body(lista); //retorna lista de usuarios com o código 200 falando q deu tudo certo
     }
 
-    @PostMapping // notação para CRIAR um novo usuario
-    public Usuario criarUsuario (@RequestBody Usuario usuario){
+    @PostMapping // notação POST para CRIAR um novo usuario
+    public ResponseEntity<Usuario> criarUsuario(@RequestBody Usuario usuario) {
         Usuario usuarioNovo = dao.save(usuario);
-        return usuarioNovo; //retorna o usuario pra mostrar qual usuario foi salvo no mysql
+        return ResponseEntity.status(201).body(usuarioNovo); //retorna o novo usuario com o codigo 201 falando q deu tudo certo
     }
 
     @PutMapping //serve pra EDITAR um usuario que ja EXISTE no banco
-    public Usuario editarUsuario (@RequestBody Usuario usuario){
+    public Usuario editarUsuario(@RequestBody Usuario usuario) {
         Usuario usuarioNovo = dao.save(usuario);
         return usuarioNovo; //retorna o usuario pra mostrar qual usuario foi salvo no mysql
     }
