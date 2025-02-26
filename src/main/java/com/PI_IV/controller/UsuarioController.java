@@ -38,4 +38,18 @@ public class UsuarioController {
         return usuarioNovo; //retorna o usuario pra mostrar qual usuario foi salvo no mysql
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Usuario usuario) {
+        // Defina os dados fixos do admin
+        String adminEmail = "admin@senac.com";
+        String adminSenha = "admin123";
+
+        if (!usuario.getEmail().equals(adminEmail) || !usuario.getSenha().equals(adminSenha)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos!");
+        }
+
+        return ResponseEntity.ok("Login bem-sucedido!");
+    }
+
+
 }
