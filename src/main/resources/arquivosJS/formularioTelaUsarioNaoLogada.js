@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(message => {
                 alert(message);
-                window.location.href = "cadastrarUsuario.html"; // Redireciona o admin para o painel
+                window.location.href = "menuBackOffice.html"; // Redireciona o admin para o painel
             })
             .catch(error => {
                 alert(error.message);
