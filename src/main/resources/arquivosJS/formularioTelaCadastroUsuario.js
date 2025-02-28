@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (data.id) {
                         alert("Usuário cadastrado com sucesso!");
                         document.getElementById("formCadastro").reset();
+                        window.location.href = "usuarioNaoLogado.html"; // Redireciona para a página de login
                     } else {
                         alert("Erro ao cadastrar usuário!");
                     }
