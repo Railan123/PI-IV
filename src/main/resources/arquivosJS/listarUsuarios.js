@@ -1,52 +1,50 @@
 document.addEventListener("DOMContentLoaded", function () {
-    carregarUsuarios(); // Carrega todos os usuários ao iniciar a página
+    carregarUsuarios(); // Garante que os usuários sejam carregados ao abrir a página
 });
 
 function carregarUsuarios() {
     fetch("http://localhost:8080/usuarios")
         .then(response => response.json())
-        .then(usuarios => {
-            preencherTabela(usuarios);
-        })
+        .then(usuarios => preencherTabela(usuarios))
         .catch(error => console.error("Erro ao buscar usuários:", error));
 }
 
-function buscarUsuarioPorNome() {
+function buscarUsuario() {
     let termo = document.getElementById("searchInput").value.trim();
+
     if (termo === "") {
-        alert("Digite um nome para buscar!");
+        alert("Digite um nome ou email para buscar!");
         return;
     }
 
-    fetch(`http://localhost:8080/usuarios/nome/${termo}`)
+    // Verifica se é um email pelo formato
+    if (termo.includes("@")) {
+        buscarUsuarioPorEmail(termo);
+    } else {
+        buscarUsuarioPorNome(termo);
+    }
+}
+
+function buscarUsuarioPorNome(nome) {
+    fetch(`http://localhost:8080/usuarios/nome/${nome}`)
         .then(response => {
             if (!response.ok) throw new Error("Usuário não encontrado");
             return response.json();
         })
-        .then(usuario => {
-            preencherTabela([usuario]); // Converte para array para exibir na tabela
-        })
+        .then(usuario => preencherTabela([usuario])) // Converte para array para exibir na tabela
         .catch(error => {
             console.error("Erro ao buscar usuário por nome:", error);
             alert("Usuário não encontrado!");
         });
 }
 
-function buscarUsuarioPorEmail() {
-    let termo = document.getElementById("searchInput").value.trim();
-    if (termo === "") {
-        alert("Digite um email para buscar!");
-        return;
-    }
-
-    fetch(`http://localhost:8080/usuarios/email/${termo}`)
+function buscarUsuarioPorEmail(email) {
+    fetch(`http://localhost:8080/usuarios/email/${email}`)
         .then(response => {
             if (!response.ok) throw new Error("Usuário não encontrado");
             return response.json();
         })
-        .then(usuario => {
-            preencherTabela([usuario]);
-        })
+        .then(usuario => preencherTabela([usuario]))
         .catch(error => {
             console.error("Erro ao buscar usuário por email:", error);
             alert("Usuário não encontrado!");
@@ -56,6 +54,11 @@ function buscarUsuarioPorEmail() {
 function preencherTabela(usuarios) {
     let tabela = document.getElementById("tabelaUsuarios");
     tabela.innerHTML = ""; // Limpa a tabela antes de preencher
+
+    if (usuarios.length === 0) {
+        tabela.innerHTML = `<tr><td colspan="5">Nenhum usuário encontrado.</td></tr>`;
+        return;
+    }
 
     usuarios.forEach(usuario => {
         let linha = `
