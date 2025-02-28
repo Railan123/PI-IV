@@ -16,6 +16,7 @@ public class UsuarioService {
     private InterfaceUsuario repository;
     private PasswordEncoder passwordEncoder;
 
+    
     public UsuarioService(InterfaceUsuario repository) {
         this.repository = repository;
         this.passwordEncoder = new BCryptPasswordEncoder();
