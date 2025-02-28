@@ -4,52 +4,75 @@ import com.PI_IV.DAO.InterfaceUsuario;
 import com.PI_IV.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-
 import java.util.List;
+import java.util.Optional;
 
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/usuarios")
-@CrossOrigin("*") // Permite chamadas de qualquer frontend
 public class UsuarioController {
-
 
     @Autowired
     private InterfaceUsuario dao;
 
+    //injeta o encriptador de semhas
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    //metodo para LISTAR todo os usuarios no banco de dados
     @GetMapping
-    public ResponseEntity<List<Usuario>> listaUsuarios() { //metodo para procurar todos os usuarios do banco
+    public ResponseEntity<List<Usuario>> listaUsuarios() {
         List<Usuario> lista = (List<Usuario>) dao.findAll();
-        return ResponseEntity.status(200).body(lista); //retorna lista de usuarios com o código 200 falando q deu tudo certo
+        return ResponseEntity.status(200).body(lista);
     }
 
-    @PostMapping // notação POST para CRIAR um novo usuario
+    //metodo para CRIAR um novo usuario no banco de dados
+    @PostMapping
     public ResponseEntity<Usuario> criarUsuario(@RequestBody Usuario usuario) {
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         Usuario usuarioNovo = dao.save(usuario);
-        return ResponseEntity.status(201).body(usuarioNovo); //retorna o novo usuario com o codigo 201 falando q deu tudo certo
+        return ResponseEntity.status(201).body(usuarioNovo);
     }
 
-    @PutMapping //serve pra EDITAR um usuario que ja EXISTE no banco
-    public Usuario editarUsuario(@RequestBody Usuario usuario) {
-        Usuario usuarioNovo = dao.save(usuario);
-        return usuarioNovo; //retorna o usuario pra mostrar qual usuario foi salvo no mysql
+    //metodo para ALTERAR um usuario no banco de dados
+    @PutMapping
+    public ResponseEntity<Usuario> editarUsuario(@RequestBody Usuario usuario) {
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+        Usuario usuarioAtualizado = dao.save(usuario);
+        return ResponseEntity.ok(usuarioAtualizado);
     }
 
+
+    //metodo para login de usuario
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Usuario usuario) {
-        // Defina os dados fixos do admin
-        String adminEmail = "admin@senac.com";
-        String adminSenha = "admin123";
+        //dados fixos
+        String emailCorreto = "admin@gmail.com";
+        String senhaCorreta = "admin123";
 
-        if (!usuario.getEmail().equals(adminEmail) || !usuario.getSenha().equals(adminSenha)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos!");
+
+        //SE o usuario e senha forem os mesmos fixos, liberar acesso
+        if (usuario.getEmail().equals(emailCorreto) && usuario.getSenha().equals(senhaCorreta)) {
+            return ResponseEntity.ok("Login bem-sucedido (usuário estático)!");
         }
 
-        return ResponseEntity.ok("Login bem-sucedido!");
+        // Verificação se o usuario existe no banco de dados pelo EMAIL
+        Optional<Usuario> usuarioOpt = dao.findByEmail(usuario.getEmail());
+        if (usuarioOpt.isPresent()) {
+            Usuario usuarioEncontrado = usuarioOpt.get();
+
+            //verificar se a senha é a mesma encriptada do banco de dados
+            if (passwordEncoder.matches(usuario.getSenha(), usuarioEncontrado.getSenha())) {
+                return ResponseEntity.ok("Login bem-sucedido!");
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha incorreta");
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não encontrado");
     }
-
-
 }
