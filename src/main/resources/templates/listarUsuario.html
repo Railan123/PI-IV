@@ -12,7 +12,7 @@
 
 <!-- Campo de busca -->
 <div class="mb-3">
-    <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nome ou email">
+    <input type="text" id="searchInput" class="form-control" placeholder="Buscar por ID, Email ou CPF">
     <button onclick="buscarUsuario()" class="btn btn-primary mt-2">Buscar</button>
 </div>
 
@@ -24,6 +24,7 @@
         <th>Email</th>
         <th>Status</th>
         <th>Grupo</th>
+        <th>Ações</th>
     </tr>
     </thead>
     <tbody id="tabelaUsuarios">
@@ -33,6 +34,6 @@
 
 <a href="cadastrarUsuario.html" class="btn btn-success">Cadastrar Novo Usuário</a>
 
-<script src="/arquivosJS/listarUsuarios.js"></script> <!-- Importa o script -->
+<script src="/arquivosJS/listarUsuarios.js"></script>
 </body>
 </html>
