@@ -32,5 +32,8 @@ public class Usuario {
     @Column (name = "grupo", length = 200, nullable = true)
     private String grupo;
 
+    @Column(name = "ativo", nullable = false)
+    private boolean ativo = true;
+
 
 }
