@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Controle de Estoque</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-4">
+    <h1 class="text-center">Controle do Estoquista</h1>
+
+    <div class="mb-3">
+        <label for="busca">Buscar Produto</label>
+        <input type="text" id="busca" class="form-control" placeholder="Digite o nome do produto">
+    </div>
+
+    <div class="mb-3">
+        <label for="ordenar">Ordenar</label>
+        <select id="ordenar" class="form-control">
+            <option value="">Selecione aqui</option>
+            <option value="mais-recente">Mais recente</option>
+            <option value="menos-recente">Menos recente</option>
+        </select>
+    </div>
+
+    <table class="table table-striped mt-3">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Data</th>
+            <th>Quantidade</th>
+            <th>Valor</th>
+            <th>Status</th>
+            <th>Ações</th>
+        </tr>
+        </thead>
+        <tbody id="lista-produtos"></tbody>
+    </table>
+
+    <nav>
+        <ul class="pagination justify-content-center" id="paginacao"></ul>
+    </nav>
+</div>
+
+<!-- MODAL DE EDIÇÃO -->
+<div class="modal fade" id="modalEdicao" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Produto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="produto-id">
+                <div class="mb-3">
+                    <label>Nome</label>
+                    <input type="text" id="produto-nome" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Quantidade</label>
+                    <input type="text" id="produto-qtd" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Valor</label>
+                    <input type="text" id="produto-valor" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Status</label>
+                    <select id="produto-status" class="form-control">
+                        <option value="Ativo">Ativo</option>
+                        <option value="Inativo">Inativo</option>
+                    </select>
+                </div>
+                <button class="btn btn-success" onclick="salvarEdicao()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let produtos = [
+        { id: 1, nome: "Camiseta", data: "2024-03-01", qtd: "5 no estoque", valor: "R$ 10,00", status: "Ativo" },
+        { id: 2, nome: "Tênis", data: "2024-03-05", qtd: "3 no estoque", valor: "R$ 15,00", status: "Ativo" },
+        { id: 3, nome: "Óculos", data: "2024-03-02", qtd: "4 no estoque", valor: "R$ 20,00", status: "Ativo" },
+        { id: 4, nome: "Brinco", data: "2024-03-05", qtd: "5 no estoque", valor: "R$ 10,00", status: "Ativo" },
+        { id: 5, nome: "Meia", data: "2024-03-05", qtd: "3 no estoque", valor: "R$ 15,00", status: "Ativo" },
+        { id: 6, nome: "Boné", data: "2024-03-07", qtd: "4 no estoque", valor: "R$ 20,00", status: "Ativo" },
+        { id: 7, nome: "Anéis", data: "2024-03-06", qtd: "5 no estoque", valor: "R$ 10,00", status: "Ativo" },
+        { id: 8, nome: "Moletom", data: "2024-03-10", qtd: "3 no estoque", valor: "R$ 15,00", status: "Ativo" },
+        { id: 9, nome: "Calça", data: "2024-03-08", qtd: "4 no estoque", valor: "R$ 20,00", status: "Ativo" },
+        { id: 10, nome: "Bermuda", data: "2024-03-06", qtd: "4 no estoque", valor: "R$ 20,00", status: "Ativo" },
+        { id: 11, nome: "Shorts", data: "2024-03-26", qtd: "4 no estoque", valor: "R$ 20,00", status: "Ativo" }
+    ];
+
+    let produtosPorPagina = 10;
+    let paginaAtual = 1;
+
+    function exibirProdutos(lista) {
+        const tbody = document.getElementById("lista-produtos");
+        tbody.innerHTML = "";
+
+        let inicio = (paginaAtual - 1) * produtosPorPagina;
+        let fim = inicio + produtosPorPagina;
+        let produtosPaginados = lista.slice(inicio, fim);
+
+        produtosPaginados.forEach(produto => {
+            let row = `<tr>
+                <td>${produto.id}</td>
+                <td>${produto.nome}</td>
+                <td>${produto.data}</td>
+                <td>${produto.qtd}</td>
+                <td>${produto.valor}</td>
+                <td>${produto.status}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="editarProduto(${produto.id})">Editar</button>
+                </td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        atualizarPaginacao(lista.length);
+    }
+
+    function atualizarPaginacao(totalProdutos) {
+        const ulPaginacao = document.getElementById("paginacao");
+        ulPaginacao.innerHTML = "";
+
+        let totalPaginas = Math.ceil(totalProdutos / produtosPorPagina);
+
+        for (let i = 1; i <= totalPaginas; i++) {
+            let li = document.createElement("li");
+            li.className = `page-item ${i === paginaAtual ? "active" : ""}`;
+            li.innerHTML = `<a class="page-link" href="#" onclick="mudarPagina(${i})">${i}</a>`;
+            ulPaginacao.appendChild(li);
+        }
+    }
+
+    function mudarPagina(pagina) {
+        paginaAtual = pagina;
+        filtrarProdutos();
+    }
+
+    function editarProduto(id) {
+        let produto = produtos.find(p => p.id === id);
+
+        document.getElementById("produto-id").value = produto.id;
+        document.getElementById("produto-nome").value = produto.nome;
+        document.getElementById("produto-qtd").value = produto.qtd;
+        document.getElementById("produto-valor").value = produto.valor;
+        document.getElementById("produto-status").value = produto.status;
+
+        let modal = new bootstrap.Modal(document.getElementById("modalEdicao"));
+        modal.show();
+    }
+
+    function salvarEdicao() {
+        let id = parseInt(document.getElementById("produto-id").value);
+        let nome = document.getElementById("produto-nome").value;
+        let qtd = document.getElementById("produto-qtd").value;
+        let valor = document.getElementById("produto-valor").value;
+        let status = document.getElementById("produto-status").value;
+
+        let index = produtos.findIndex(p => p.id === id);
+        if (index !== -1) {
+            produtos[index] = { ...produtos[index], nome, qtd, valor, status };
+        }
+
+        let modal = bootstrap.Modal.getInstance(document.getElementById("modalEdicao"));
+        modal.hide();
+
+        filtrarProdutos();
+    }
+
+    function filtrarProdutos() {
+        let busca = document.getElementById("busca").value.toLowerCase();
+        let listaFiltrada = produtos.filter(produto => produto.nome.toLowerCase().includes(busca));
+        exibirProdutos(listaFiltrada);
+    }
+
+    document.getElementById("busca").addEventListener("keyup", filtrarProdutos);
+    exibirProdutos(produtos);
+</script>
+
+</body>
+</html>
