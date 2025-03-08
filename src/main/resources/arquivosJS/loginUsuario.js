@@ -38,7 +38,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Login bem-sucedido
             alert(`Bem-vindo, ${usuario.nome}`);
-            window.location.href = "menuBackAOffice.html"; // Redireciona para o painel
+
+            // Verifica o grupo do usuário e redireciona para a tela correta
+            if (usuario.grupo === "Administrador") {
+                window.location.href = "menuAdm.html";
+            } else if (usuario.grupo === "Estoquista") {
+                window.location.href = "menuEstoquista.html";
+            } else {
+                alert("Grupo de usuário não reconhecido.");
+            }
 
         } catch (error) {
             alert(error.message);
