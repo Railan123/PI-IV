@@ -1,3 +1,4 @@
+<!-- Listar produtos estoquista -->
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -146,31 +147,35 @@
     function editarProduto(id) {
         let produto = produtos.find(p => p.id === id);
 
+        // Preenche os campos com os valores do produto
         document.getElementById("produto-id").value = produto.id;
         document.getElementById("produto-nome").value = produto.nome;
-        document.getElementById("produto-qtd").value = produto.qtd;
+        document.getElementById("produto-qtd").value = produto.qtd.replace(" no estoque", ""); // Remover a parte " no estoque"
         document.getElementById("produto-valor").value = produto.valor;
         document.getElementById("produto-status").value = produto.status;
 
+        // Desabilitar os campos nome, valor e status
+        document.getElementById("produto-nome").disabled = true;
+        document.getElementById("produto-valor").disabled = true;
+        document.getElementById("produto-status").disabled = true;
+
+        // Exibe o modal de edição
         let modal = new bootstrap.Modal(document.getElementById("modalEdicao"));
         modal.show();
     }
 
     function salvarEdicao() {
         let id = parseInt(document.getElementById("produto-id").value);
-        let nome = document.getElementById("produto-nome").value;
-        let qtd = document.getElementById("produto-qtd").value;
-        let valor = document.getElementById("produto-valor").value;
-        let status = document.getElementById("produto-status").value;
+        let qtd = document.getElementById("produto-qtd").value; // Aqui a quantidade será a única editável
+        let produto = produtos.find(p => p.id === id);
 
-        let index = produtos.findIndex(p => p.id === id);
-        if (index !== -1) {
-            produtos[index] = { ...produtos[index], nome, qtd, valor, status };
-        }
+        // Atualiza a quantidade do produto
+        produto.qtd = `${qtd} no estoque`;
 
         let modal = bootstrap.Modal.getInstance(document.getElementById("modalEdicao"));
         modal.hide();
 
+        // Atualiza a exibição dos produtos
         filtrarProdutos();
     }
 
