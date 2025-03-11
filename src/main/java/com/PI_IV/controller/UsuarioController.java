@@ -39,12 +39,30 @@ public class UsuarioController {
     }
 
     // Método para alterar um usuário no banco de dados
-    @PutMapping
-    public ResponseEntity<Usuario> editarUsuario(@RequestBody Usuario usuario) {
-        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));  // Criptografa a senha
-        Usuario usuarioAtualizado = dao.save(usuario);
-        return ResponseEntity.ok(usuarioAtualizado);
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> editarUsuario(@PathVariable Integer id, @RequestBody Usuario usuarioAtualizado) {
+        Optional<Usuario> usuarioOpt = dao.findById(id);
+
+        if (usuarioOpt.isPresent()) {
+            Usuario usuarioExistente = usuarioOpt.get();
+
+            // Atualiza apenas os campos permitidos
+            usuarioExistente.setNome(usuarioAtualizado.getNome());
+            usuarioExistente.setEmail(usuarioAtualizado.getEmail());
+            usuarioExistente.setGrupo(usuarioAtualizado.getGrupo());
+
+            // Verifica se a senha foi enviada e se não está vazia
+            if (usuarioAtualizado.getSenha() != null && !usuarioAtualizado.getSenha().isEmpty()) {
+                usuarioExistente.setSenha(passwordEncoder.encode(usuarioAtualizado.getSenha()));
+            }
+
+            Usuario usuarioSalvo = dao.save(usuarioExistente);
+            return ResponseEntity.ok(usuarioSalvo);
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
+
 
     // Método de login do usuário
     @PostMapping("/login")
