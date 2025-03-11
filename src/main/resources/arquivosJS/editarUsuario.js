@@ -19,15 +19,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const usuarioAtualizado = { nome, email, grupo };
 
-        // Verifique os dados antes de enviar
-        console.log(usuarioAtualizado);
-
         fetch(`http://localhost:8080/usuarios/${userId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(usuarioAtualizado)
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Erro ao atualizar usuário");
+                }
+                return response.json();
+            })
             .then(data => {
                 alert("Usuário atualizado com sucesso!");
                 window.location.href = "listarUsuarios.html";
@@ -40,11 +42,16 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function carregarDadosUsuario(userId) {
-    fetch(`http://localhost:8080/usuarios/${userId}`)
-        .then(response => response.json())
+    fetch(`http://localhost:8080/usuarios/id/${userId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Erro ao buscar usuário");
+            }
+            return response.json();
+        })
         .then(usuario => {
             document.getElementById("id").value = usuario.id;
-            document.getElementById("nome").value = usuario.nome_completo; // Ajuste de acordo com o nome correto no backend
+            document.getElementById("nome").value = usuario.nome;
             document.getElementById("cpf").value = usuario.cpf;
             document.getElementById("email").value = usuario.email;
             document.getElementById("grupo").value = usuario.grupo;
@@ -52,6 +59,6 @@ function carregarDadosUsuario(userId) {
         .catch(error => {
             console.error("Erro ao buscar usuário:", error);
             alert("Usuário não encontrado!");
-            window.location.href = "listarUsuarios.html";
+            window.location.href = "listarUsuario.html";
         });
 }
