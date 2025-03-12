@@ -7,20 +7,32 @@ document.addEventListener("DOMContentLoaded", function () {
         let email = document.getElementById("email").value.trim();
         let senha = document.getElementById("senha").value.trim();
 
+        const user = {
+            email: email,
+            senha: senha,
+        };
+
         fetch("http://localhost:8080/usuarios/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, senha })
+            body: JSON.stringify(user)
         })
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Email ou senha inválidos!");
                 }
-                return response.text();
+                return response.json();
             })
-            .then(message => {
-                alert(message);
-                window.location.href = "menuBackOffice.html"; // Redireciona o admin para o painel
+            .then(data => {
+                console.log(typeof(data))
+                // alert(message);
+                if (data.grupo === "admin"||data.grupo === "admin") {
+                    window.location.href = "menuAdm.html";
+                } else if (data.grupo === "Estoquista"||data.grupo === "estoquista") {
+                    window.location.href = "menuEstoquista.html";
+                } else {
+                    alert("Grupo de usuário não reconhecido.");
+                }
             })
             .catch(error => {
                 alert(error.message);

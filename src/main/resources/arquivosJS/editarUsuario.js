@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(data => {
                 alert("Usuário atualizado com sucesso!");
-                window.location.href = "listarUsuarios.html";
+                window.location.href = "listarUsuario.html";
             })
             .catch(error => {
                 console.error("Erro ao atualizar usuário:", error);
