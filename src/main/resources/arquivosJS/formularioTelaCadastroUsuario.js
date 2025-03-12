@@ -1,11 +1,26 @@
-//JS TELA DE CADASTRO ATUALIZADA
-
 document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("formCadastro").addEventListener("submit", function(event) {
+    const cpfInput = document.getElementById("cpf");
+
+    // Aplica a máscara ao CPF enquanto o usuário digita
+    cpfInput.addEventListener("input", function () {
+        let cpf = cpfInput.value.replace(/\D/g, ""); // Remove tudo que não for número
+
+        if (cpf.length > 11) {
+            cpf = cpf.substring(0, 11); // Garante que tenha no máximo 11 números
+        }
+
+        // Aplica a formatação
+        cpfInput.value = cpf
+            .replace(/^(\d{3})(\d)/, "$1.$2")
+            .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+            .replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+    });
+
+    document.getElementById("formCadastro").addEventListener("submit", function (event) {
         event.preventDefault();
 
         let nome = document.getElementById("nome").value.trim();
-        let cpf = document.getElementById("cpf").value.trim();
+        let cpf = cpfInput.value.replace(/\D/g, ""); // Remove formatação para enviar só os números
         let email = document.getElementById("email").value.trim();
         let senha = document.getElementById("senha").value.trim();
         let confirmaSenha = document.getElementById("confirmaSenha").value.trim();
@@ -44,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (data.id) {
                         alert("Usuário cadastrado com sucesso!");
                         document.getElementById("formCadastro").reset();
-                        window.location.href = "usuarioNaoLogado.html"; // Redireciona para a página de login
+                        window.location.href = "usuarioNaoLogado.html";
                     } else {
                         alert("Erro ao cadastrar usuário!");
                     }
@@ -57,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// Função para validar CPF (básica)
+// Função para validar CPF (considera apenas 11 dígitos)
 function validarCPF(cpf) {
-    return cpf.length === 11; // Simplesmente verifica se tem 11 dígitos
+    return cpf.length === 11;
 }
