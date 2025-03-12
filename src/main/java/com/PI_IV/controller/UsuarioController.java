@@ -67,23 +67,15 @@ public class UsuarioController {
     // Método de login do usuário
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Usuario usuario) {
-        // Dados fixos para validação (pode ser ajustado conforme necessário)
-        String emailCorreto = "admin@gmail.com";
-        String senhaCorreta = "admin123";
-
-        // Se o usuário e senha forem os mesmos fixos, liberar acesso
-        if (usuario.getEmail().equals(emailCorreto) && usuario.getSenha().equals(senhaCorreta)) {
-            return ResponseEntity.ok("Login bem-sucedido (usuário estático)!");
-        }
-
-        // Verificação se o usuário existe no banco de dados pelo EMAIL
         Optional<Usuario> usuarioOpt = dao.findByEmail(usuario.getEmail());
+
         if (usuarioOpt.isPresent()) {
             Usuario usuarioEncontrado = usuarioOpt.get();
 
-            // Verificar se a senha é a mesma encriptada do banco de dados
+            // Verifica se a senha fornecida corresponde à senha encriptada no banco
             if (passwordEncoder.matches(usuario.getSenha(), usuarioEncontrado.getSenha())) {
-                return ResponseEntity.ok("Login bem-sucedido!");
+                // Retorna um JSON com os dados do usuário
+                return ResponseEntity.ok(usuarioEncontrado);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha incorreta");
             }
