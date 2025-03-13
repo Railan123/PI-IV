@@ -51,4 +51,19 @@ public class ProdutoController {
     public ResponseEntity<Void> excluirProduto(@PathVariable Integer id) {
         return service.excluir(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
+
+    @PutMapping("/ativarDesativar/{id}")
+    public ResponseEntity<Produto> ativarDesativarProduto(@PathVariable Integer id) {
+        Optional<Produto> produtoOpt = service.buscarPorId(id);
+
+        if (produtoOpt.isPresent()) {
+            Produto produto = produtoOpt.get();
+            produto.setAtivo(!produto.isAtivo()); // Alterna entre ativo/inativo
+            Produto produtoAtualizado = service.salvar(produto);
+            return ResponseEntity.ok(produtoAtualizado); // Retorna JSON válido
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
 }
