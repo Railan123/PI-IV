@@ -1,35 +1,34 @@
-/**
- * Função para validar CPF
- * @param {string} cpf - Número do CPF a ser validado
- * @returns {boolean} - Retorna true se for válido, false se for inválido
- */
 function validarCPF(cpf) {
-    // Remove caracteres não numéricos (pontos e traços)
-    cpf = cpf.replace(/[^\d]+/g, '');
+    // Remove caracteres não numéricos
+    cpf = cpf.replace(/\D/g, '');
 
-    // Verifica se o CPF tem exatamente 11 dígitos
-    if (cpf.length !== 11) return false;
+    // Verifica se tem 11 dígitos e se é numérico
+    if (cpf.length !== 11 || isNaN(cpf)) return false;
 
-    // Impede CPFs com números repetidos (exemplo: 000.000.000-00)
+    // Elimina CPFs inválidos conhecidos (exemplo: 000.000.000-00)
     if (/^(\d)\1{10}$/.test(cpf)) return false;
 
-    // Cálculo do primeiro dígito verificador
-    let soma = 0, resto;
-    for (let i = 1; i <= 9; i++) {
-        soma += parseInt(cpf.charAt(i - 1)) * (11 - i);
+    // Calcula o primeiro dígito verificador
+    let soma = 0;
+    for (let i = 0; i < 9; i++) {
+        soma += parseInt(cpf[i]) * (10 - i);
     }
-    resto = (soma * 10) % 11;
-    if (resto === 10 || resto === 11) resto = 0;
-    if (resto !== parseInt(cpf.charAt(9))) return false;
+    let resto = (soma * 10) % 11;
+    let primeiroDigito = resto === 10 || resto === 11 ? 0 : resto;
 
-    // Cálculo do segundo dígito verificador
+    // Calcula o segundo dígito verificador
     soma = 0;
-    for (let i = 1; i <= 10; i++) {
-        soma += parseInt(cpf.charAt(i - 1)) * (12 - i);
+    for (let i = 0; i < 10; i++) {
+        soma += parseInt(cpf[i]) * (11 - i);
     }
     resto = (soma * 10) % 11;
-    if (resto === 10 || resto === 11) resto = 0;
-    
-    // Retorna verdadeiro se o CPF for válido, falso caso contrário
-    return resto === parseInt(cpf.charAt(10));
+    let segundoDigito = resto === 10 || resto === 11 ? 0 : resto;
+
+    // Verifica se os dígitos calculados são iguais aos originais
+    return primeiroDigito === parseInt(cpf[9]) && segundoDigito === parseInt(cpf[10]);
 }
+
+// Exemplos de uso:
+console.log(validarCPF("123.456.789-09")); // false (inválido)
+console.log(validarCPF("529.982.247-25")); // true (válido)
+console.log(validarCPF("111.111.111-11")); // false (inválido)
