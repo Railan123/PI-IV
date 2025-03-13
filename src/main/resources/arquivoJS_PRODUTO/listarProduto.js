@@ -49,20 +49,28 @@ function preencherTabela(produtos) {
     tabela.innerHTML = "";
 
     if (produtos.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="7">Nenhum produto encontrado.</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="8">Nenhum produto encontrado.</td></tr>`;
         return;
     }
 
     produtos.forEach(produto => {
+        let statusTexto = produto.ativo ? "Ativo" : "Inativo";
+        let statusClasse = produto.ativo ? "btn-danger" : "btn-success";
+        let statusAcao = produto.ativo ? "Desativar" : "Ativar";
+
         let linha = `
             <tr>
                 <td>${produto.id}</td>
                 <td>${produto.nome}</td>
                 <td>${produto.avaliacao ?? '-'}</td>
                 <td>R$ ${produto.preco.toFixed(2)}</td>
-                <td>${produto.quantidade_estoque}</td>
-                <td><img src="${produto.imagem_padrao || 'placeholder.jpg'}" alt="Imagem" width="50"></td>
+                <td>${produto.quantidadeEstoque}</td>
+                <td><img src="${produto.imagemPadrao || 'placeholder.jpg'}" alt="Imagem" width="50"></td>
+                <td>${statusTexto}</td>
                 <td>
+                    <button class="btn ${statusClasse}" onclick="ativarDesativarProduto(${produto.id}, ${produto.ativo})">
+                        ${statusAcao}
+                    </button>
                     <button class="btn btn-warning" onclick="editarProduto(${produto.id})">Editar</button>
                     <button class="btn btn-danger" onclick="removerProduto(${produto.id})">Remover</button>
                 </td>
@@ -71,6 +79,25 @@ function preencherTabela(produtos) {
         tabela.innerHTML += linha;
     });
 }
+
+function ativarDesativarProduto(id, ativo) {
+    fetch(`http://localhost:8080/produtos/ativarDesativar/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Erro ao alterar status do produto.");
+            }
+            return response.json(); // Agora o backend retorna um JSON válido
+        })
+        .then(produtoAtualizado => {
+            alert(`Produto ${produtoAtualizado.ativo ? 'ativado' : 'desativado'} com sucesso!`);
+            carregarProdutos();
+        })
+        .catch(error => console.error("Erro ao alterar status do produto:", error));
+}
+
 
 function editarProduto(id) {
     window.location.href = `editarProduto.html?id=${id}`;
