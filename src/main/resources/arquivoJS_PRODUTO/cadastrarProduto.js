@@ -4,12 +4,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const imagemPrincipal = document.getElementById("imagemPrincipal");
     let imagensSelecionadas = [];
 
+    // Lida com a seleção de imagens
     inputImagens.addEventListener("change", function () {
         let arquivos = Array.from(this.files);
         if (arquivos.length === 0) return;
 
         carouselInner.innerHTML = "";
-        imagensSelecionadas = [];
+        imagensSelecionadas = arquivos;
 
         arquivos.forEach((file, index) => {
             let reader = new FileReader();
@@ -19,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 divItem.classList.add("carousel-item");
                 if (index === 0) {
                     divItem.classList.add("active");
-                    imagemPrincipal.src = e.target.result;
+                    imagemPrincipal.src = e.target.result; // Define a imagem principal
                 }
 
                 let img = document.createElement("img");
@@ -30,18 +31,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 divItem.appendChild(img);
                 carouselInner.appendChild(divItem);
-                imagensSelecionadas.push(file);
             };
 
             reader.readAsDataURL(file);
         });
-
-        let carousel = new bootstrap.Carousel("#carouselImagens", {
-            interval: false,
-            wrap: true
-        });
     });
 
+    // Salvar imagens no modal e atualizar a imagem principal
     window.salvarImagens = function () {
         if (imagensSelecionadas.length > 0) {
             let reader = new FileReader();
@@ -58,14 +54,18 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    document.getElementById("formCadastroProduto").addEventListener("submit", function (event) {
-        event.preventDefault();
+    // Confirmação do cancelamento
+    window.confirmarCancelamento = function () {
+        window.location.href = "listarProduto.html";
+    };
 
+    // Função para salvar o produto
+    window.confirmarSalvar = function () {
         let nome = document.getElementById("nome").value.trim();
-        let preco = document.getElementById("preco").value.trim().replace("R$ ", "").replace(/\./g, "").replace(",", ".");
         let quantidade = document.getElementById("quantidade").value.trim();
         let descricao = document.getElementById("descricao").value.trim();
         let avaliacao = document.getElementById("avaliacao").value.trim();
+        let preco = document.getElementById("preco").value.trim().replace(/[^0-9,]/g, "").replace(",", ".");
 
         if (!nome || !preco || !quantidade || !descricao || !avaliacao) {
             alert("Todos os campos são obrigatórios!");
@@ -87,20 +87,20 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        let produto = {
-            nome: nome,
-            preco: parseFloat(preco),
-            quantidadeEstoque: parseInt(quantidade),
-            descricao: descricao,
-            avaliacao: parseFloat(avaliacao)
-        };
+        let formData = new FormData();
+        formData.append("nome", nome);
+        formData.append("preco", parseFloat(preco));
+        formData.append("quantidadeEstoque", parseInt(quantidade));
+        formData.append("descricao", descricao);
+        formData.append("avaliacao", parseFloat(avaliacao));
+
+        if (imagensSelecionadas.length > 0) {
+            formData.append("imagem", imagensSelecionadas[0]); // Apenas a primeira imagem será enviada como principal
+        }
 
         fetch("http://localhost:8080/produtos", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(produto)
+            body: formData
         })
             .then(response => {
                 if (!response.ok) {
@@ -113,8 +113,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.href = "listarProduto.html";
             })
             .catch(error => console.error("Erro ao cadastrar produto:", error));
-    });
+    };
 
+
+    // Formatar o campo de preço em moeda brasileira (R$)
     document.getElementById("preco").addEventListener("input", function () {
         let valor = this.value.replace(/[^0-9]/g, "");
         valor = (parseInt(valor) / 100).toLocaleString("pt-BR", {
@@ -124,13 +126,10 @@ document.addEventListener("DOMContentLoaded", function () {
         this.value = valor;
     });
 
+    // Impedir valores fora do intervalo no campo de avaliação
     document.getElementById("avaliacao").addEventListener("input", function () {
         let valor = parseFloat(this.value);
         if (valor < 1) this.value = "1";
         if (valor > 5) this.value = "5";
     });
-
-    window.confirmarCancelamento = function () {
-        window.location.href = "listarProduto.html";
-    };
 });

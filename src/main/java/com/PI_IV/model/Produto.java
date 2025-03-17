@@ -1,52 +1,50 @@
 package com.PI_IV.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "produtos")
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
+@Getter
+@Setter
 public class Produto {
 
+    // Chave primária auto-incrementável
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // Nome do produto
     @Column(nullable = false, length = 200)
     private String nome;
 
-    @Column(nullable = false, precision = 2, scale = 1)
-    private BigDecimal avaliacao;
+    // Avaliação do produto (de 1 a 5)
+    @Column(nullable = false, precision = 2)
+    private Double avaliacao;
 
+    // Descrição do produto
     @Column(nullable = false, length = 255)
     private String descricao;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal preco;
+    // Preço do produto
+    @Column(nullable = false, precision = 10)
+    private Double preco;
 
+    // Quantidade disponível no estoque
     @Column(nullable = false)
-    private Integer quantidadeEstoque=0;
+    private Integer quantidadeEstoque;
 
-    @Column(nullable = false)
-    private boolean ativo = true;
-
-    @Column(nullable = true, columnDefinition = "LONGTEXT")
+    // Nome do arquivo da imagem
+    @Column(columnDefinition = "LONGTEXT")
     private String imagemPadrao;
 
+    // Armazena a imagem como BLOB
     @Lob
-    @Column(name = "imagem_blob")
+    @Column(columnDefinition = "LONGBLOB")
     private byte[] imagemBlob;
 
-    public void setAvaliacao(BigDecimal avaliacao) {
-        if (avaliacao.compareTo(BigDecimal.ONE) < 0 || avaliacao.compareTo(BigDecimal.valueOf(5)) > 0) {
-            throw new IllegalArgumentException("A avaliação deve estar entre 1 e 5.");
-        }
-        this.avaliacao = avaliacao;
-    }
+    // Indica se o produto está ativo
+    @Column(nullable = false)
+    private boolean ativo = true;
 }
