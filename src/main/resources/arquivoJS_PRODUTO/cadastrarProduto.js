@@ -1,89 +1,136 @@
-// Aguarda o carregamento do DOM para adicionar funcionalidade ao formulário
 document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("formCadastroProduto").addEventListener("submit", async function (event) {
-        event.preventDefault(); // Evita recarregar a página ao enviar o formulário
+    const inputImagens = document.getElementById("inputImagens");
+    const carouselInner = document.getElementById("carouselInner");
+    const imagemPrincipal = document.getElementById("imagemPrincipal");
+    let imagensSelecionadas = [];
 
-        // Captura os valores do formulário
+    inputImagens.addEventListener("change", function () {
+        let arquivos = Array.from(this.files);
+        if (arquivos.length === 0) return;
+
+        carouselInner.innerHTML = "";
+        imagensSelecionadas = [];
+
+        arquivos.forEach((file, index) => {
+            let reader = new FileReader();
+
+            reader.onload = function (e) {
+                let divItem = document.createElement("div");
+                divItem.classList.add("carousel-item");
+                if (index === 0) {
+                    divItem.classList.add("active");
+                    imagemPrincipal.src = e.target.result;
+                }
+
+                let img = document.createElement("img");
+                img.src = e.target.result;
+                img.classList.add("d-block", "w-100");
+                img.style.height = "400px";
+                img.style.objectFit = "cover";
+
+                divItem.appendChild(img);
+                carouselInner.appendChild(divItem);
+                imagensSelecionadas.push(file);
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+        let carousel = new bootstrap.Carousel("#carouselImagens", {
+            interval: false,
+            wrap: true
+        });
+    });
+
+    window.salvarImagens = function () {
+        if (imagensSelecionadas.length > 0) {
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                imagemPrincipal.src = e.target.result;
+            };
+            reader.readAsDataURL(imagensSelecionadas[0]);
+        }
+
+        let modalEl = document.getElementById("modalImagem");
+        let modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+    };
+
+    document.getElementById("formCadastroProduto").addEventListener("submit", function (event) {
+        event.preventDefault();
+
         let nome = document.getElementById("nome").value.trim();
-        let avaliacao = parseFloat(document.getElementById("avaliacao").value);
+        let preco = document.getElementById("preco").value.trim().replace("R$ ", "").replace(/\./g, "").replace(",", ".");
+        let quantidade = document.getElementById("quantidade").value.trim();
         let descricao = document.getElementById("descricao").value.trim();
-        let preco = document.getElementById("preco").value.replace("R$ ", "").replace(/\./g, "").replace(",", "."); // Converte para formato numérico
-        let quantidadeEstoque = parseInt(document.getElementById("quantidade").value);
+        let avaliacao = document.getElementById("avaliacao").value.trim();
 
-        // Validação da avaliação (1 a 5)
-        if (isNaN(avaliacao) || avaliacao < 1 || avaliacao > 5) {
+        if (!nome || !preco || !quantidade || !descricao || !avaliacao) {
+            alert("Todos os campos são obrigatórios!");
+            return;
+        }
+
+        if (isNaN(parseFloat(preco)) || parseFloat(preco) <= 0) {
+            alert("O preço deve ser um número positivo.");
+            return;
+        }
+
+        if (isNaN(parseInt(quantidade)) || parseInt(quantidade) < 0) {
+            alert("A quantidade deve ser um número inteiro positivo.");
+            return;
+        }
+
+        if (isNaN(parseFloat(avaliacao)) || parseFloat(avaliacao) < 1 || parseFloat(avaliacao) > 5) {
             alert("A avaliação deve estar entre 1 e 5.");
             return;
         }
 
-        // Obtém a imagem e a converte para Base64
-        let imagemInput = document.getElementById("imagem");
-        let imagemPadrao = await converterImagemParaBase64(imagemInput.files[0]);
+        let produto = {
+            nome: nome,
+            preco: parseFloat(preco),
+            quantidadeEstoque: parseInt(quantidade),
+            descricao: descricao,
+            avaliacao: parseFloat(avaliacao)
+        };
 
-        // Cria o objeto do produto
-        const produto = { nome, avaliacao, descricao, preco, quantidadeEstoque, imagemPadrao, ativo: true };
-
-        // Envia os dados para a API via POST
         fetch("http://localhost:8080/produtos", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify(produto)
         })
             .then(response => {
-                if (!response.ok) throw new Error("Erro ao cadastrar produto");
+                if (!response.ok) {
+                    throw new Error("Erro ao salvar o produto.");
+                }
                 return response.json();
             })
-            .then(data => {
-                alert("Produto cadastrado com sucesso!"); // Exibe mensagem de sucesso
-                window.location.href = "listarProduto.html"; // Redireciona para a listagem de produtos
+            .then(() => {
+                alert("Produto cadastrado com sucesso!");
+                window.location.href = "listarProduto.html";
             })
-            .catch(error => {
-                console.error("Erro ao cadastrar produto:", error);
-                alert("Erro ao cadastrar o produto.");
-            });
+            .catch(error => console.error("Erro ao cadastrar produto:", error));
     });
 
-    // Exibe a prévia da imagem ao selecionar um arquivo
-    document.getElementById("imagem").addEventListener("change", function (event) {
-        let file = event.target.files[0];
-        if (file) {
-            let reader = new FileReader();
-            reader.onload = function (e) {
-                document.getElementById("previewImagem").src = e.target.result; // Atualiza o src da imagem
-                document.getElementById("previewImagem").style.display = "block"; // Exibe a prévia
-            };
-            reader.readAsDataURL(file);
-        }
+    document.getElementById("preco").addEventListener("input", function () {
+        let valor = this.value.replace(/[^0-9]/g, "");
+        valor = (parseInt(valor) / 100).toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL"
+        });
+        this.value = valor;
     });
 
-    // Valida a entrada da avaliação para permitir apenas números entre 1 e 5
     document.getElementById("avaliacao").addEventListener("input", function () {
         let valor = parseFloat(this.value);
-        if (valor < 1) this.value = 1;
-        if (valor > 5) this.value = 5;
+        if (valor < 1) this.value = "1";
+        if (valor > 5) this.value = "5";
     });
+
+    window.confirmarCancelamento = function () {
+        window.location.href = "listarProduto.html";
+    };
 });
-
-// Função para converter a imagem para Base64
-function converterImagemParaBase64(imagem) {
-    return new Promise((resolve, reject) => {
-        if (!imagem) {
-            resolve(null);
-            return;
-        }
-        let reader = new FileReader();
-        reader.readAsDataURL(imagem);
-        reader.onload = () => resolve(reader.result.split(",")[1]); // Remove prefixo "data:image/png;base64,"
-        reader.onerror = error => reject(error);
-    });
-}
-
-// Função para formatar o preço automaticamente enquanto o usuário digita
-function formatarPreco(input) {
-    let valor = input.value.replace(/\D/g, ""); // Remove tudo que não for número
-    valor = (parseInt(valor) / 100).toFixed(2); // Divide por 100 para inserir as casas decimais
-    valor = valor.replace(".", ","); // Substitui ponto por vírgula para padrão brasileiro
-
-    // Adiciona separador de milhar (R$ XXX.XXX,XX)
-    input.value = "R$ " + valor.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
