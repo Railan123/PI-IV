@@ -29,7 +29,7 @@ public class ProdutoController {
         return ResponseEntity.ok(service.listarTodos());
     }
 
-    // Lista apenas os produtos ativos
+    // Lista apenas produtos ativos
     @GetMapping("/ativos")
     public ResponseEntity<List<Produto>> listarAtivos() {
         return ResponseEntity.ok(service.listarAtivos());
@@ -42,14 +42,14 @@ public class ProdutoController {
         return produto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Cria um novo produto com suporte a imagem
+    // Cria um novo produto
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<Produto> criarProduto(
             @RequestParam("nome") String nome,
             @RequestParam("preco") Double preco,
             @RequestParam("quantidadeEstoque") Integer quantidadeEstoque,
             @RequestParam("descricao") String descricao,
-            @RequestParam("avaliacao") Double avaliacao,
+            @RequestParam("avaliacao") Float avaliacao,
             @RequestParam(value = "imagem", required = false) MultipartFile imagem) {
 
         Produto produto = new Produto();
@@ -61,7 +61,7 @@ public class ProdutoController {
 
         if (imagem != null && !imagem.isEmpty()) {
             try {
-                produto.setImagemPadrao(imagem.getOriginalFilename());
+                produto.setImagemPadrao(imagem.getBytes());
                 produto.setImagemBlob(imagem.getBytes());
             } catch (IOException e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -71,35 +71,35 @@ public class ProdutoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.salvar(produto));
     }
 
-    // Atualiza um produto pelo ID
+    // Atualiza um produto existente
     @PutMapping("/{id}")
     public ResponseEntity<Produto> atualizarProduto(@PathVariable Integer id, @RequestBody Produto produto) {
         Produto produtoAtualizado = service.atualizar(id, produto);
         return produtoAtualizado != null ? ResponseEntity.ok(produtoAtualizado) : ResponseEntity.notFound().build();
     }
 
-    // Ativa ou desativa um produto pelo ID
+    // Ativa ou desativa um produto
     @PutMapping("/ativarDesativar/{id}")
     public ResponseEntity<Produto> ativarDesativarProduto(@PathVariable Integer id) {
         Optional<Produto> produtoOpt = service.ativarDesativar(id);
         return produtoOpt.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Salva uma imagem para um produto específico
+    // Endpoint para salvar imagem de produto
     @PostMapping("/{id}/imagem")
-    public ResponseEntity<Produto> salvarImagem(@PathVariable Integer id, @RequestParam("imagem") MultipartFile imagem) {
-        Produto produtoAtualizado = service.salvarImagem(id, imagem);
+    public ResponseEntity<Produto> salvarImagem(@PathVariable Integer id, @RequestParam("imagem") MultipartFile imagem, @RequestParam(value = "isPrincipal", defaultValue = "true") boolean isPrincipal) {
+        Produto produtoAtualizado = service.salvarImagem(id, imagem, isPrincipal);
         return produtoAtualizado != null ? ResponseEntity.ok(produtoAtualizado) : ResponseEntity.notFound().build();
     }
 
-    // Recupera a imagem de um produto
+    // Endpoint para recuperar imagem de produto
     @GetMapping("/{id}/imagem")
     public ResponseEntity<byte[]> recuperarImagem(@PathVariable Integer id) {
         byte[] imagem = service.recuperarImagem(id);
         if (imagem == null) return ResponseEntity.notFound().build();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "image/png");
+        headers.add("Content-Type", "image/jpeg"); // Define o tipo de imagem como genérico
 
         return new ResponseEntity<>(imagem, headers, HttpStatus.OK);
     }

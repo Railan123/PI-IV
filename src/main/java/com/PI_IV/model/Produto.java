@@ -5,46 +5,46 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "produtos")
 @Getter
 @Setter
+@Table(name = "produtos")
 public class Produto {
 
-    // Chave primária auto-incrementável
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Nome do produto
+    // Nome do produto, obrigatório
     @Column(nullable = false, length = 200)
     private String nome;
 
-    // Avaliação do produto (de 1 a 5)
-    @Column(nullable = false, precision = 2)
-    private Double avaliacao;
+    // Avaliação do produto, obrigatório
+    @Column(nullable = true)
+    private Float avaliacao;
 
-    // Descrição do produto
+    // Descrição do produto, obrigatório
     @Column(nullable = false, length = 255)
     private String descricao;
 
-    // Preço do produto
-    @Column(nullable = false, precision = 10)
+    // Preço do produto, obrigatório
+    @Column(nullable = false)
     private Double preco;
 
-    // Quantidade disponível no estoque
+    // Quantidade em estoque, obrigatório
     @Column(nullable = false)
     private Integer quantidadeEstoque;
 
-    // Nome do arquivo da imagem
-    @Column(columnDefinition = "LONGTEXT")
-    private String imagemPadrao;
+    // A imagem principal é armazenada como BLOB (longblob)
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] imagemPadrao;
 
-    // Armazena a imagem como BLOB
+    // Imagem adicional do produto, armazenada também como BLOB (longblob)
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] imagemBlob;
 
-    // Indica se o produto está ativo
+    // O produto está ativo ou não. Default é 1 (ativo)
     @Column(nullable = false)
     private boolean ativo = true;
 }

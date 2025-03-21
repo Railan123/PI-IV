@@ -6,37 +6,102 @@
   <title>Lista de Produtos</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-<body class="container mt-5">
-
-<h2>Lista de Produtos</h2>
+<body class="container mt-4">
 
 <!-- Campo de busca -->
-<div class="mb-3">
-  <input type="text" id="searchInput" class="form-control" placeholder="Buscar por Nome ou ID">
-  <button onclick="buscarProduto()" class="btn btn-primary mt-2">Buscar</button>
+<div class="input-group mb-3">
+  <input type="text" id="searchInput" class="form-control" placeholder="Pesquisar">
+  <button onclick="buscarProduto()" class="btn btn-warning">
+    <img src="https://cdn-icons-png.flaticon.com/512/149/149852.png" width="20px">
+  </button>
 </div>
 
-<table class="table table-striped">
-  <thead>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Lista de Produtos</h2>
+  <button class="btn btn-primary" onclick="cadastrarProduto()">Cadastrar Novo Produto</button>
+</div>
+
+<!-- Tabela de Produtos -->
+<table class="table table-striped text-center">
+  <thead class="table-primary">
   <tr>
-    <th>ID</th>
+    <th>Código</th>
     <th>Nome</th>
-    <th>Avaliação</th>
-    <th>Preço</th>
-    <th>Estoque</th>
-    <th>Imagem</th>
+    <th>Quantidade</th>
+    <th>Valor</th>
     <th>Status</th>
-    <th>Ações</th>
+    <th>Opções</th>
   </tr>
   </thead>
   <tbody id="tabelaProdutos">
-  <!-- Os produtos serão inseridos aqui pelo JavaScript -->
+  <!-- Produtos serão carregados aqui via JavaScript -->
   </tbody>
 </table>
 
-<a href="cadastrarProduto.html" class="btn btn-success">Cadastrar Novo Produto</a>
+<!-- Modal de Edição -->
+<div class="modal fade" id="modalEditarProduto" tabindex="-1" aria-labelledby="modalEditarProdutoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarProdutoLabel">Editar Produto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarProduto">
+          <input type="hidden" id="produtoId">
 
-<!-- Importando o JavaScript separado -->
+          <!-- Nome -->
+          <div class="mb-3">
+            <label for="produtoNome" class="form-label">Nome</label>
+            <input type="text" class="form-control" id="produtoNome" required>
+          </div>
+
+          <!-- Preço -->
+          <div class="mb-3">
+            <label for="produtoValor" class="form-label">Preço</label>
+            <input type="number" class="form-control" id="produtoValor" step="0.01" required>
+          </div>
+
+          <!-- Quantidade em Estoque -->
+          <div class="mb-3">
+            <label for="produtoQuantidade" class="form-label">Quantidade em Estoque</label>
+            <input type="number" class="form-control" id="produtoQuantidade" required>
+          </div>
+
+          <!-- Descrição -->
+          <div class="mb-3">
+            <label for="produtoDescricao" class="form-label">Descrição</label>
+            <textarea class="form-control" id="produtoDescricao" rows="3" required></textarea>
+          </div>
+
+          <!-- Avaliação -->
+          <div class="mb-3">
+            <label for="produtoAvaliacao" class="form-label">Avaliação (0 a 5)</label>
+            <input type="number" class="form-control" id="produtoAvaliacao" step="0.1" min="0" max="5" required>
+          </div>
+
+          <!-- Status -->
+          <div class="mb-3">
+            <label for="produtoStatus" class="form-label">Status</label>
+            <select class="form-control" id="produtoStatus">
+              <option value="true">Ativo</option>
+              <option value="false">Inativo</option>
+            </select>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" onclick="salvarEdicaoProduto()">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/arquivoJS_PRODUTO/listarProduto.js"></script>
 
 </body>

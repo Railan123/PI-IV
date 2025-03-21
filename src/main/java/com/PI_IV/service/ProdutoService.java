@@ -18,43 +18,40 @@ public class ProdutoService {
         this.repository = repository;
     }
 
+    // Lista todos os produtos
     public List<Produto> listarTodos() {
         return repository.findAll();
     }
 
+    // Lista apenas produtos ativos
     public List<Produto> listarAtivos() {
         return repository.findByAtivoTrue();
     }
 
+    // Busca um produto pelo ID
     public Optional<Produto> buscarPorId(Integer id) {
         return repository.findById(id);
     }
 
+    // Salva um novo produto
     public Produto salvar(Produto produto) {
         return repository.save(produto);
     }
 
+    // Atualiza os dados de um produto existente
     public Produto atualizar(Integer id, Produto produtoAtualizado) {
         return repository.findById(id).map(produto -> {
-            produto.setNome(Optional.ofNullable(produtoAtualizado.getNome()).orElse(produto.getNome()));
-            produto.setAvaliacao(Optional.ofNullable(produtoAtualizado.getAvaliacao()).orElse(produto.getAvaliacao()));
-            produto.setDescricao(Optional.ofNullable(produtoAtualizado.getDescricao()).orElse(produto.getDescricao()));
-            produto.setPreco(Optional.ofNullable(produtoAtualizado.getPreco()).orElse(produto.getPreco()));
-            produto.setQuantidadeEstoque(Optional.ofNullable(produtoAtualizado.getQuantidadeEstoque()).orElse(produto.getQuantidadeEstoque()));
-            produto.setImagemPadrao(Optional.ofNullable(produtoAtualizado.getImagemPadrao()).orElse(produto.getImagemPadrao()));
+            produto.setNome(produtoAtualizado.getNome());
+            produto.setAvaliacao(produtoAtualizado.getAvaliacao());
+            produto.setDescricao(produtoAtualizado.getDescricao());
+            produto.setPreco(produtoAtualizado.getPreco());
+            produto.setQuantidadeEstoque(produtoAtualizado.getQuantidadeEstoque());
             produto.setAtivo(produtoAtualizado.isAtivo());
-
             return repository.save(produto);
         }).orElse(null);
     }
 
-    public boolean excluir(Integer id) {
-        return repository.findById(id).map(produto -> {
-            repository.delete(produto);
-            return true;
-        }).orElse(false);
-    }
-
+    // Ativa ou desativa um produto
     public Optional<Produto> ativarDesativar(Integer id) {
         return repository.findById(id).map(produto -> {
             produto.setAtivo(!produto.isAtivo());
@@ -62,22 +59,27 @@ public class ProdutoService {
         });
     }
 
-    public Produto salvarImagem(Integer id, MultipartFile imagem) {
+    // Salva uma imagem associada ao produto (principal ou adicional)
+    public Produto salvarImagem(Integer id, MultipartFile imagem, boolean isPrincipal) {
         return repository.findById(id).map(produto -> {
             try {
-                byte[] imagemBytes = imagem.getBytes();
-                produto.setImagemPadrao(imagem.getOriginalFilename());
-                produto.setImagemBlob(imagemBytes);
+                if (isPrincipal) {
+                    produto.setImagemPadrao(imagem.getBytes());
+                } else {
+                    produto.setImagemBlob(imagem.getBytes());
+                }
                 return repository.save(produto);
             } catch (IOException e) {
-                throw new RuntimeException("Erro ao processar a imagem: " + e.getMessage());
+                e.printStackTrace();
+                return null;
             }
         }).orElse(null);
     }
 
+    // Recupera a imagem de um produto
     public byte[] recuperarImagem(Integer id) {
         return repository.findById(id)
-                .map(Produto::getImagemBlob)
+                .map(Produto::getImagemPadrao)
                 .orElse(null);
     }
 }
