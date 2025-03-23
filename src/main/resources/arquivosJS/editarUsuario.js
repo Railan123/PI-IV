@@ -17,7 +17,21 @@ document.addEventListener("DOMContentLoaded", function () {
         let email = document.getElementById("email").value.trim();
         let grupo = document.getElementById("grupo").value;
 
+        // Obtendo as senhas
+        let novaSenha = document.getElementById("novaSenha").value.trim();
+        let confirmarSenha = document.getElementById("confirmarSenha").value.trim();
+
+        // Verificando se as senhas coincidem
+        if (novaSenha !== confirmarSenha) {
+            alert("As senhas não coincidem!");
+            return;
+        }
+
+        // Se a nova senha estiver preenchida, adicione ao objeto
         const usuarioAtualizado = { nome, email, grupo };
+        if (novaSenha) {
+            usuarioAtualizado.senha = novaSenha;
+        }
 
         fetch(`http://localhost:8080/usuarios/${userId}`, {
             method: "PUT",
