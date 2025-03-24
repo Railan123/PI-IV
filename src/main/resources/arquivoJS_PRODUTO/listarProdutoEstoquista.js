@@ -31,7 +31,7 @@ function preencherTabela(produtos) {
                 <td>${produto.quantidadeEstoque}</td>
                 <td>${statusTexto}</td>
                 <td>
-                    <button class="btn ${statusClasse}" onclick="ativarDesativarProduto(${produto.id}, ${produto.ativo})">
+                    <button class="btn ${statusClasse}" onclick="ativarDesativarProduto(${produto.id})">
                         ${statusAcao}
                     </button>
                     <button class="btn btn-warning" onclick="editarProduto(${produto.id})">Editar</button>
@@ -42,8 +42,8 @@ function preencherTabela(produtos) {
     });
 }
 
-function ativarDesativarProduto(id, ativo) {
-    fetch(`http://localhost:8080/produtos/ativarDesativar/${id}`, {
+function ativarDesativarProduto(id) {
+    fetch(`http://localhost:8080/produtos/${id}/ativarDesativar`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" }
     })
@@ -88,7 +88,7 @@ function salvarEdicaoProduto() {
     let id = document.getElementById("produtoId").value;
     let quantidade = parseInt(document.getElementById("produtoQuantidade").value);
 
-    fetch(`http://localhost:8080/produtos/atualizarQuantidade/${id}`, {
+    fetch(`http://localhost:8080/produtos/${id}/atualizarQuantidade`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ quantidadeEstoque: quantidade })
@@ -110,5 +110,3 @@ function salvarEdicaoProduto() {
             alert("Erro ao atualizar o produto.");
         });
 }
-
-

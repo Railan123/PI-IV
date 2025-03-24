@@ -79,4 +79,18 @@ public class ProdutoService {
     public List<ImagemProduto> recuperarImagens(Integer id) {
         return imagemRepository.findByProdutoId(id);
     }
+
+    public Optional<Produto> atualizarQuantidade(Integer id, Integer novaQuantidade) {
+        Optional<Produto> produtoOptional = produtoRepository.findById(id);
+
+        if (produtoOptional.isPresent()) {
+            Produto produto = produtoOptional.get();
+            produto.setQuantidadeEstoque(novaQuantidade);
+            produtoRepository.save(produto);
+            return Optional.of(produto);
+        }
+
+        return Optional.empty();
+    }
+
 }

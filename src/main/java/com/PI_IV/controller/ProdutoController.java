@@ -6,6 +6,7 @@ import com.PI_IV.service.ProdutoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -57,5 +58,19 @@ public class ProdutoController {
     @GetMapping("/{id}/imagens")
     public ResponseEntity<List<ImagemProduto>> recuperarImagens(@PathVariable Integer id) {
         return ResponseEntity.ok(service.recuperarImagens(id));
+    }
+
+    // Endpoint para ativar ou desativar um produto
+    @PutMapping("/{id}/ativarDesativar")
+    public ResponseEntity<Produto> ativarDesativarProduto(@PathVariable Integer id) {
+        Optional<Produto> produtoAtualizado = service.ativarDesativar(id);
+        return produtoAtualizado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // Endpoint para atualizar a quantidade em estoque
+    @PutMapping("/{id}/atualizarQuantidade")
+    public ResponseEntity<Produto> atualizarQuantidade(@PathVariable Integer id, @RequestBody Produto produto) {
+        Optional<Produto> produtoAtualizado = service.atualizarQuantidade(id, produto.getQuantidadeEstoque());
+        return produtoAtualizado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
