@@ -14,11 +14,12 @@ public class ImagemProduto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // Produto ao qual a imagem pertence
     @ManyToOne
     @JoinColumn(name = "produto_id", nullable = false)
     private Produto produto;
 
-    // Armazena a imagem como BLOB
+    // Dados da imagem (BLOB)
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] imagem;
