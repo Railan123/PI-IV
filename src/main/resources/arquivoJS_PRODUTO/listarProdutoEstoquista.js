@@ -33,7 +33,7 @@ function preencherTabela(produtos) {
                 <td class="text-center">
                     <div class="d-flex justify-content-center gap-2">
                         <button class="btn ${statusClasse} btn-sm w-80" style="width: 100px;"
-                            onclick="ativarDesativarProduto(${produto.id})">
+                            onclick="confirmarAtivacao(${produto.id}, ${produto.ativo})">
                             ${statusAcao}
                         </button>
                         <button class="btn btn-warning btn-sm w-80" style="width: 100px;"
@@ -48,6 +48,12 @@ function preencherTabela(produtos) {
     });
 }
 
+function confirmarAtivacao(id, ativo) {
+    let acao = ativo ? "desativar" : "ativar";
+    if (confirm(`Tem certeza que deseja ${acao} este produto?`)) {
+        ativarDesativarProduto(id);
+    }
+}
 
 function ativarDesativarProduto(id) {
     fetch(`http://localhost:8080/produtos/${id}/ativarDesativar`, {

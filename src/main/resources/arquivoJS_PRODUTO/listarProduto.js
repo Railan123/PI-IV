@@ -45,7 +45,6 @@ function preencherTabela(produtos) {
 }
 
 
-
 // Função para visualizar detalhes do produto em um modal
 function visualizarProduto(id) {
     fetch(`http://localhost:8080/produtos/${id}`)
@@ -65,6 +64,32 @@ function visualizarProduto(id) {
             modal.show();
         })
         .catch(() => alert("Erro ao carregar detalhes do produto."));
+}
+
+// Função para confirmar a alteração de status do produto
+function alterarStatusProduto(id, statusAtual) {
+    let acao = statusAtual ? "desativar" : "ativar";
+
+    if (confirm(`Tem certeza que deseja ${acao} este produto?`)) {
+        fetch(`http://localhost:8080/produtos/${id}/ativarDesativar`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Erro ao alterar status do produto.");
+                }
+                return response.json();
+            })
+            .then(produtoAtualizado => {
+                alert(`Produto ${produtoAtualizado.ativo ? 'ativado' : 'desativado'} com sucesso!`);
+                carregarProdutos();
+            })
+            .catch(error => {
+                console.error("Erro ao alterar status do produto:", error);
+                alert("Erro ao alterar o status do produto.");
+            });
+    }
 }
 
 function editarProduto(id) {
