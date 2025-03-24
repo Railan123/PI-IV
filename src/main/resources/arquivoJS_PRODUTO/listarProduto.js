@@ -16,7 +16,7 @@ function preencherTabela(produtos) {
     tabela.innerHTML = "";
 
     if (produtos.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="7">Nenhum produto encontrado.</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="7" class="text-center">Nenhum produto encontrado.</td></tr>`;
         return;
     }
 
@@ -29,12 +29,14 @@ function preencherTabela(produtos) {
                 <td>${produto.quantidadeEstoque}</td>
                 <td>R$ ${produto.preco.toFixed(2)}</td>
                 <td>${statusTexto}</td>
-                <td>
-                    <button class="btn btn-info" onclick="visualizarProduto(${produto.id})">Visualizar</button>
-                    <button class="btn btn-warning" onclick="editarProduto(${produto.id})">Editar</button>
-                    <button class="btn ${produto.ativo ? 'btn-danger' : 'btn-success'}" onclick="alterarStatusProduto(${produto.id}, ${produto.ativo})">
-                        ${produto.ativo ? 'Desativar' : 'Ativar'}
-                    </button>
+                <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-info" style="min-width: 100px;" onclick="visualizarProduto(${produto.id})">Visualizar</button>
+                        <button class="btn btn-warning" style="min-width: 100px;" onclick="editarProduto(${produto.id})">Editar</button>
+                        <button class="btn ${produto.ativo ? 'btn-danger' : 'btn-success'}" style="min-width: 100px;" onclick="alterarStatusProduto(${produto.id}, ${produto.ativo})">
+                            ${produto.ativo ? 'Desativar' : 'Ativar'}
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -42,30 +44,28 @@ function preencherTabela(produtos) {
     });
 }
 
+
+
 // Função para visualizar detalhes do produto em um modal
 function visualizarProduto(id) {
     fetch(`http://localhost:8080/produtos/${id}`)
         .then(response => response.json())
         .then(produto => {
-            // Preenchendo os campos do modal
             document.getElementById("produtoNomeModal").innerText = produto.nome;
             document.getElementById("produtoQuantidadeModal").innerText = produto.quantidadeEstoque;
             document.getElementById("produtoPrecoModal").innerText = produto.preco.toFixed(2);
 
-            // Se houver imagem, exibe; senão, coloca uma imagem padrão
             if (produto.imagem_padrao) {
                 document.getElementById("produtoImagemModal").src = `data:image/png;base64,${produto.imagem_padrao}`;
             } else {
                 document.getElementById("produtoImagemModal").src = "https://via.placeholder.com/300?text=Sem+Imagem";
             }
 
-            // Exibindo o modal
             let modal = new bootstrap.Modal(document.getElementById("modalVisualizarProduto"));
             modal.show();
         })
-        .catch(error => alert("Erro ao carregar detalhes do produto."));
+        .catch(() => alert("Erro ao carregar detalhes do produto."));
 }
-
 
 function editarProduto(id) {
     fetch(`http://localhost:8080/produtos/${id}`)
@@ -82,9 +82,8 @@ function editarProduto(id) {
             let modal = new bootstrap.Modal(document.getElementById("modalEditarProduto"));
             modal.show();
         })
-        .catch(error => alert("Erro ao carregar os dados do produto."));
+        .catch(() => alert("Erro ao carregar os dados do produto."));
 }
-
 
 // Função para salvar alterações do produto
 function salvarEdicaoProduto() {

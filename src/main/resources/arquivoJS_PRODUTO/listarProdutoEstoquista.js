@@ -14,7 +14,7 @@ function preencherTabela(produtos) {
     tabela.innerHTML = "";
 
     if (!Array.isArray(produtos) || produtos.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="6">Nenhum produto encontrado.</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="6" class="text-center">Nenhum produto encontrado.</td></tr>`;
         return;
     }
 
@@ -30,17 +30,24 @@ function preencherTabela(produtos) {
                 <td>R$ ${produto.preco.toFixed(2)}</td>
                 <td>${produto.quantidadeEstoque}</td>
                 <td>${statusTexto}</td>
-                <td>
-                    <button class="btn ${statusClasse}" onclick="ativarDesativarProduto(${produto.id})">
-                        ${statusAcao}
-                    </button>
-                    <button class="btn btn-warning" onclick="editarProduto(${produto.id})">Editar</button>
+                <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn ${statusClasse} btn-sm w-80" style="width: 100px;"
+                            onclick="ativarDesativarProduto(${produto.id})">
+                            ${statusAcao}
+                        </button>
+                        <button class="btn btn-warning btn-sm w-80" style="width: 100px;"
+                            onclick="editarProduto(${produto.id})">
+                            Editar
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
         tabela.innerHTML += linha;
     });
 }
+
 
 function ativarDesativarProduto(id) {
     fetch(`http://localhost:8080/produtos/${id}/ativarDesativar`, {
