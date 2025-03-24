@@ -1,42 +1,86 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista de Produtos</title>
+  <title>Gerenciar Produtos - Estoquista</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-<body class="container mt-5">
-
-<h2>Lista de Produtos</h2>
-
-<!-- Campo de busca -->
-<div class="mb-3">
-  <input type="text" id="searchInput" class="form-control" placeholder="Buscar por Nome ou ID">
-  <button onclick="buscarProduto()" class="btn btn-primary mt-2">Buscar</button>
+<body>
+<div class="container mt-5">
+  <h2>Lista de Produtos</h2>
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nome</th>
+      <th>Preço</th>
+      <th>Quantidade</th>
+      <th>Status</th>
+      <th>Ações</th>
+    </tr>
+    </thead>
+    <tbody id="tabelaProdutos">
+    <!-- Produtos serão carregados aqui -->
+    </tbody>
+  </table>
 </div>
 
-<table class="table table-striped">
-  <thead>
-  <tr>
-    <th>ID</th>
-    <th>Nome</th>
-    <th>Avaliação</th>
-    <th>Preço</th>
-    <th>Estoque</th>
-    <th>Imagem</th>
-    <th>Status</th>
-    <th>Ações</th>
-  </tr>
-  </thead>
-  <tbody id="tabelaProdutos">
-  <!-- Os produtos serão inseridos aqui pelo JavaScript -->
-  </tbody>
-</table>
+<!-- Modal de Edição (Estoquista) -->
+<div class="modal fade" id="modalEditarProduto" tabindex="-1" aria-labelledby="modalEditarProdutoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarProdutoLabel">Editar Produto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarProduto">
+          <input type="hidden" id="produtoId">
+
+          <!-- Nome -->
+          <div class="mb-3">
+            <label for="produtoNome" class="form-label">Nome</label>
+            <input type="text" class="form-control" id="produtoNome" disabled>
+          </div>
+
+          <!-- Preço -->
+          <div class="mb-3">
+            <label for="produtoValor" class="form-label">Preço</label>
+            <input type="number" class="form-control" id="produtoValor" step="0.01" disabled>
+          </div>
+
+          <!-- Quantidade em Estoque -->
+          <div class="mb-3">
+            <label for="produtoQuantidade" class="form-label">Quantidade em Estoque</label>
+            <input type="number" class="form-control" id="produtoQuantidade" required>
+          </div>
+
+          <!-- Descrição -->
+          <div class="mb-3">
+            <label for="produtoDescricao" class="form-label">Descrição</label>
+            <textarea class="form-control" id="produtoDescricao" rows="3" disabled></textarea>
+          </div>
+
+          <!-- Avaliação -->
+          <div class="mb-3">
+            <label for="produtoAvaliacao" class="form-label">Avaliação (0 a 5)</label>
+            <input type="number" class="form-control" id="produtoAvaliacao" step="0.1" min="0" max="5" disabled>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" onclick="salvarEdicaoProduto()">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
-<!-- Importando o JavaScript separado -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/arquivoJS_PRODUTO/listarProdutoEstoquista.js"></script>
-
 </body>
 </html>

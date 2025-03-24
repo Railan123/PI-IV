@@ -38,6 +38,25 @@
   </tbody>
 </table>
 
+<!-- Modal de Visualização -->
+<div class="modal fade" id="modalVisualizarProduto" tabindex="-1" aria-labelledby="modalVisualizarProdutoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">←</button>
+        <h5 class="modal-title mx-auto" id="produtoNomeModal"></h5>
+      </div>
+      <div class="modal-body text-center">
+        <img id="produtoImagemModal" class="img-fluid mb-3" style="max-height: 300px;" alt="Imagem do Produto">
+        <p><strong>Quantidade disponível:</strong> <span id="produtoQuantidadeModal"></span></p>
+        <p><strong>Preço:</strong> R$ <span id="produtoPrecoModal"></span></p>
+        <button class="btn btn-success">Comprar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- Modal de Edição -->
 <div class="modal fade" id="modalEditarProduto" tabindex="-1" aria-labelledby="modalEditarProdutoLabel" aria-hidden="true">
   <div class="modal-dialog">

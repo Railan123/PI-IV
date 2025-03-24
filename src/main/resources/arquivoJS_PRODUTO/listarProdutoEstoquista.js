@@ -26,7 +26,12 @@ function buscarProduto() {
 
 function buscarProdutoPorId(id) {
     fetch(`http://localhost:8080/produtos/${id}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Produto não encontrado!");
+            }
+            return response.json();
+        })
         .then(produto => preencherTabela([produto]))
         .catch(error => {
             console.error("Erro ao buscar produto por ID:", error);
@@ -36,7 +41,12 @@ function buscarProdutoPorId(id) {
 
 function buscarProdutoPorNome(nome) {
     fetch(`http://localhost:8080/produtos/nome/${nome}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Produto não encontrado!");
+            }
+            return response.json();
+        })
         .then(produtos => preencherTabela(produtos))
         .catch(error => {
             console.error("Erro ao buscar produto por Nome:", error);
@@ -48,8 +58,8 @@ function preencherTabela(produtos) {
     let tabela = document.getElementById("tabelaProdutos");
     tabela.innerHTML = "";
 
-    if (produtos.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="7">Nenhum produto encontrado.</td></tr>`;
+    if (!Array.isArray(produtos) || produtos.length === 0) {
+        tabela.innerHTML = `<tr><td colspan="8">Nenhum produto encontrado.</td></tr>`;
         return;
     }
 
@@ -88,7 +98,7 @@ function ativarDesativarProduto(id, ativo) {
             if (!response.ok) {
                 throw new Error("Erro ao alterar status do produto.");
             }
-            return response.json(); // Agora o backend retorna um JSON válido
+            return response.json();
         })
         .then(produtoAtualizado => {
             alert(`Produto ${produtoAtualizado.ativo ? 'ativado' : 'desativado'} com sucesso!`);
@@ -98,5 +108,30 @@ function ativarDesativarProduto(id, ativo) {
 }
 
 function editarProduto(id) {
-    window.location.href = `editarProduto.html?id=${id}`;
+    fetch(`http://localhost:8080/produtos/${id}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Produto não encontrado!");
+            }
+            return response.json();
+        })
+        .then(produto => {
+            // Preenchendo os campos do modal
+            document.getElementById("produtoId").value = produto.id;
+            document.getElementById("produtoNome").value = produto.nome;
+            document.getElementById("produtoValor").value = produto.preco.toFixed(2);
+            document.getElementById("produtoQuantidade").value = produto.quantidadeEstoque;
+            document.getElementById("produtoDescricao").value = produto.descricao;
+            document.getElementById("produtoAvaliacao").value = produto.avaliacao ?? '';
+
+            // Abrindo o modal corretamente
+            let modal = new bootstrap.Modal(document.getElementById("modalEditarProduto"));
+            modal.show();
+        })
+        .catch(error => {
+            console.error("Erro ao carregar produto para edição:", error);
+            alert("Erro ao carregar produto para edição!");
+        });
 }
+
+

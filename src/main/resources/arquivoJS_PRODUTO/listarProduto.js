@@ -42,15 +42,30 @@ function preencherTabela(produtos) {
     });
 }
 
-// Função para visualizar detalhes do produto
+// Função para visualizar detalhes do produto em um modal
 function visualizarProduto(id) {
     fetch(`http://localhost:8080/produtos/${id}`)
         .then(response => response.json())
         .then(produto => {
-            alert(`Produto: ${produto.nome}\nQuantidade: ${produto.quantidadeEstoque}\nPreço: R$ ${produto.preco.toFixed(2)}\nStatus: ${produto.ativo ? "Ativo" : "Inativo"}`);
+            // Preenchendo os campos do modal
+            document.getElementById("produtoNomeModal").innerText = produto.nome;
+            document.getElementById("produtoQuantidadeModal").innerText = produto.quantidadeEstoque;
+            document.getElementById("produtoPrecoModal").innerText = produto.preco.toFixed(2);
+
+            // Se houver imagem, exibe; senão, coloca uma imagem padrão
+            if (produto.imagem_padrao) {
+                document.getElementById("produtoImagemModal").src = `data:image/png;base64,${produto.imagem_padrao}`;
+            } else {
+                document.getElementById("produtoImagemModal").src = "https://via.placeholder.com/300?text=Sem+Imagem";
+            }
+
+            // Exibindo o modal
+            let modal = new bootstrap.Modal(document.getElementById("modalVisualizarProduto"));
+            modal.show();
         })
         .catch(error => alert("Erro ao carregar detalhes do produto."));
 }
+
 
 function editarProduto(id) {
     fetch(`http://localhost:8080/produtos/${id}`)
