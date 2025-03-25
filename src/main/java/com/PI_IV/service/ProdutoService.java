@@ -1,96 +1,114 @@
 package com.PI_IV.service;
 
-import com.PI_IV.DAO.InterfaceProduto;
 import com.PI_IV.DAO.InterfaceImagemProduto;
+import com.PI_IV.DAO.InterfaceProduto;
 import com.PI_IV.model.ImagemProduto;
 import com.PI_IV.model.Produto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 @Service
 public class ProdutoService {
-    private final InterfaceProduto produtoRepository;
-    private final InterfaceImagemProduto imagemRepository;
 
-    public ProdutoService(InterfaceProduto produtoRepository, InterfaceImagemProduto imagemRepository) {
-        this.produtoRepository = produtoRepository;
-        this.imagemRepository = imagemRepository;
+    private final InterfaceProduto repository;
+    private final InterfaceImagemProduto imagemProdutoRepository;
+
+    public ProdutoService(InterfaceProduto repository, InterfaceImagemProduto imagemProdutoRepository) {
+        this.repository = repository;
+        this.imagemProdutoRepository = imagemProdutoRepository;
     }
 
+    // Lista todos os produtos
     public List<Produto> listarTodos() {
-        return produtoRepository.findAll();
+        return repository.findAll();
     }
 
+    // Lista apenas produtos ativos
     public List<Produto> listarAtivos() {
-        return produtoRepository.findByAtivoTrue();
+        return repository.findByAtivoTrue();
     }
 
+    // Busca um produto pelo ID
     public Optional<Produto> buscarPorId(Integer id) {
-        return produtoRepository.findById(id);
+        return repository.findById(id);
     }
 
+    // Salva um novo produto
     public Produto salvar(Produto produto) {
-        return produtoRepository.save(produto);
+        return repository.save(produto);
     }
 
-    public Optional<Produto> atualizar(Integer id, Produto produtoAtualizado) {
-        return produtoRepository.findById(id).map(produto -> {
+    // Atualiza os dados de um produto existente
+    public Produto atualizar(Integer id, Produto produtoAtualizado) {
+        return repository.findById(id).map(produto -> {
             produto.setNome(produtoAtualizado.getNome());
             produto.setAvaliacao(produtoAtualizado.getAvaliacao());
             produto.setDescricao(produtoAtualizado.getDescricao());
             produto.setPreco(produtoAtualizado.getPreco());
             produto.setQuantidadeEstoque(produtoAtualizado.getQuantidadeEstoque());
             produto.setAtivo(produtoAtualizado.isAtivo());
-            return produtoRepository.save(produto);
-        });
+            return repository.save(produto);
+        }).orElse(null);
     }
 
+    // Ativa ou desativa um produto
     public Optional<Produto> ativarDesativar(Integer id) {
-        return produtoRepository.findById(id).map(produto -> {
+        return repository.findById(id).map(produto -> {
             produto.setAtivo(!produto.isAtivo());
-            return produtoRepository.save(produto);
+            return repository.save(produto);
         });
     }
 
-    public Optional<Produto> salvarImagemPrincipal(Integer id, MultipartFile imagem) {
-        return produtoRepository.findById(id).map(produto -> {
+    // Salva a imagem principal
+    public Produto salvarImagemPrincipal(Integer id, MultipartFile imagem) {
+        return repository.findById(id).map(produto -> {
             try {
                 produto.setImagemPadrao(imagem.getBytes());
-                return produtoRepository.save(produto);
+                return repository.save(produto);
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
             }
-        });
+        }).orElse(null);
     }
 
-    public void salvarImagemAdicional(Integer id, MultipartFile imagem) throws IOException {
-        Produto produto = produtoRepository.findById(id).orElseThrow(() -> new RuntimeException("Produto não encontrado"));
-        ImagemProduto img = new ImagemProduto();
-        img.setProduto(produto);
-        img.setImagem(imagem.getBytes());
-        imagemRepository.save(img);
+    // Recupera a imagem principal do produto
+    public byte[] recuperarImagem(Integer id) {
+        return repository.findById(id)
+                .map(Produto::getImagemPadrao)
+                .orElse(null);
     }
 
-    public List<ImagemProduto> recuperarImagens(Integer id) {
-        return imagemRepository.findByProdutoId(id);
+    // Salva múltiplas imagens adicionais
+    public List<ImagemProduto> salvarImagensAdicionais(Integer id, List<MultipartFile> imagens) {
+        return repository.findById(id).map(produto -> {
+            List<ImagemProduto> listaImagens = new ArrayList<>();
+            for (MultipartFile imagem : imagens) {
+                try {
+                    ImagemProduto imgProduto = new ImagemProduto();
+                    imgProduto.setProduto(produto);
+                    imgProduto.setImagem(imagem.getBytes());
+                    listaImagens.add(imagemProdutoRepository.save(imgProduto));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return listaImagens;
+        }).orElse(Collections.emptyList());
     }
 
-    public Optional<Produto> atualizarQuantidade(Integer id, Integer novaQuantidade) {
-        Optional<Produto> produtoOptional = produtoRepository.findById(id);
-
-        if (produtoOptional.isPresent()) {
-            Produto produto = produtoOptional.get();
-            produto.setQuantidadeEstoque(novaQuantidade);
-            produtoRepository.save(produto);
-            return Optional.of(produto);
-        }
-
-        return Optional.empty();
+    // Recupera todas as imagens de um produto
+    public List<byte[]> listarImagensProduto(Integer id) {
+        return imagemProdutoRepository.findByProdutoId(id).stream()
+                .map(ImagemProduto::getImagem)
+                .collect(Collectors.toList());
     }
-
 }
+

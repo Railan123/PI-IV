@@ -3,7 +3,6 @@ package com.PI_IV.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
 
 @Entity
 @Getter
@@ -20,7 +19,7 @@ public class Produto {
     private String nome;
 
     // Avaliação do produto, obrigatório
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Float avaliacao;
 
     // Descrição do produto, obrigatório
@@ -35,16 +34,17 @@ public class Produto {
     @Column(nullable = false)
     private Integer quantidadeEstoque;
 
-    // A imagem principal do produto é armazenada como BLOB
+    // A imagem principal é armazenada como BLOB (longblob)
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] imagemPadrao;
 
-    // O produto está ativo ou não (valor padrão = true)
-    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
-    private boolean ativo = true;
+    // Imagem adicional do produto, armazenada também como BLOB (longblob)
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] imagemBlob;
 
-    // Relacionamento com a tabela de imagens adicionais do produto
-    @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ImagemProduto> imagens;
+    // O produto está ativo ou não. Default é 1 (ativo)
+    @Column(nullable = false)
+    private boolean ativo = true;
 }

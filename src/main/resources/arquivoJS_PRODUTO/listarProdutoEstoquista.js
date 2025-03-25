@@ -32,14 +32,17 @@ function preencherTabela(produtos) {
                 <td>${statusTexto}</td>
                 <td class="text-center">
                     <div class="d-flex justify-content-center gap-2">
-                        <button class="btn ${statusClasse} btn-sm w-80" style="width: 100px;"
-                            onclick="confirmarAtivacao(${produto.id}, ${produto.ativo})">
-                            ${statusAcao}
-                        </button>
+                        
                         <button class="btn btn-warning btn-sm w-80" style="width: 100px;"
                             onclick="editarProduto(${produto.id})">
                             Editar
                         </button>
+                        
+                        <button class="btn ${statusClasse} btn-sm w-80" style="width: 100px;"
+                            onclick="confirmarAtivacao(${produto.id}, ${produto.ativo})">
+                            ${statusAcao}
+                        </button>
+                        
                     </div>
                 </td>
             </tr>
