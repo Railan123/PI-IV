@@ -4,111 +4,117 @@ import com.PI_IV.DAO.InterfaceImagemProduto;
 import com.PI_IV.DAO.InterfaceProduto;
 import com.PI_IV.model.ImagemProduto;
 import com.PI_IV.model.Produto;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Collections;
-import java.util.stream.Collectors;
 
 @Service
 public class ProdutoService {
 
-    private final InterfaceProduto repository;
+    private final InterfaceProduto produtoRepository;
     private final InterfaceImagemProduto imagemProdutoRepository;
 
-    public ProdutoService(InterfaceProduto repository, InterfaceImagemProduto imagemProdutoRepository) {
-        this.repository = repository;
+    // Caminho configurado no application.properties
+    @Value("${caminho.imagens}")
+    private String caminhoImagens;  // Este valor será "C:/Users/Administrador/PI-IV/imagens_produto" quando configurado no application.properties
+
+    public ProdutoService(InterfaceProduto produtoRepository, InterfaceImagemProduto imagemProdutoRepository) {
+        this.produtoRepository = produtoRepository;
         this.imagemProdutoRepository = imagemProdutoRepository;
     }
 
-    // Lista todos os produtos
     public List<Produto> listarTodos() {
-        return repository.findAll();
-    }
-
-    // Lista apenas produtos ativos
-    public List<Produto> listarAtivos() {
-        return repository.findByAtivoTrue();
-    }
-
-    // Busca um produto pelo ID
-    public Optional<Produto> buscarPorId(Integer id) {
-        return repository.findById(id);
-    }
-
-    // Salva um novo produto
-    public Produto salvar(Produto produto) {
-        return repository.save(produto);
-    }
-
-    // Atualiza os dados de um produto existente
-    public Produto atualizar(Integer id, Produto produtoAtualizado) {
-        return repository.findById(id).map(produto -> {
-            produto.setNome(produtoAtualizado.getNome());
-            produto.setAvaliacao(produtoAtualizado.getAvaliacao());
-            produto.setDescricao(produtoAtualizado.getDescricao());
-            produto.setPreco(produtoAtualizado.getPreco());
-            produto.setQuantidadeEstoque(produtoAtualizado.getQuantidadeEstoque());
-            produto.setAtivo(produtoAtualizado.isAtivo());
-            return repository.save(produto);
-        }).orElse(null);
-    }
-
-    // Ativa ou desativa um produto
-    public Optional<Produto> ativarDesativar(Integer id) {
-        return repository.findById(id).map(produto -> {
-            produto.setAtivo(!produto.isAtivo());
-            return repository.save(produto);
-        });
-    }
-
-    // Salva a imagem principal
-    public Produto salvarImagemPrincipal(Integer id, MultipartFile imagem) {
-        return repository.findById(id).map(produto -> {
-            try {
-                produto.setImagemPadrao(imagem.getBytes());
-                return repository.save(produto);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
+        List<Produto> produtos = produtoRepository.findAll();
+        for (Produto produto : produtos) {
+            if (!produto.getImagensAdicionais().isEmpty()) {
+                produto.setImagemPadrao(produto.getImagensAdicionais().get(0).getCaminho());
             }
-        }).orElse(null);
+        }
+        return produtos;
     }
 
-    // Recupera a imagem principal do produto
-    public byte[] recuperarImagem(Integer id) {
-        return repository.findById(id)
-                .map(Produto::getImagemPadrao)
+    public List<Produto> listarAtivos() {
+        return produtoRepository.findByAtivoTrue();
+    }
+
+    public Optional<Produto> buscarPorId(Integer id) {
+        return produtoRepository.findById(id);
+    }
+
+    public Produto salvar(Produto produto) {
+        return produtoRepository.save(produto);
+    }
+
+    public Produto atualizar(Integer id, Produto produto) {
+        return produtoRepository.findById(id)
+                .map(existingProduto -> {
+                    existingProduto.setNome(produto.getNome());
+                    existingProduto.setPreco(produto.getPreco());
+                    existingProduto.setDescricao(produto.getDescricao());
+                    existingProduto.setQuantidadeEstoque(produto.getQuantidadeEstoque());
+                    return produtoRepository.save(existingProduto);
+                })
                 .orElse(null);
     }
 
-    // Salva múltiplas imagens adicionais
-    public List<ImagemProduto> salvarImagensAdicionais(Integer id, List<MultipartFile> imagens) {
-        return repository.findById(id).map(produto -> {
-            List<ImagemProduto> listaImagens = new ArrayList<>();
-            for (MultipartFile imagem : imagens) {
-                try {
-                    ImagemProduto imgProduto = new ImagemProduto();
-                    imgProduto.setProduto(produto);
-                    imgProduto.setImagem(imagem.getBytes());
-                    listaImagens.add(imagemProdutoRepository.save(imgProduto));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            return listaImagens;
-        }).orElse(Collections.emptyList());
+    public Optional<Produto> ativarDesativar(Integer id) {
+        return produtoRepository.findById(id)
+                .map(produto -> {
+                    produto.setAtivo(!produto.isAtivo());
+                    return produtoRepository.save(produto);
+                });
     }
 
-    // Recupera todas as imagens de um produto
-    public List<byte[]> listarImagensProduto(Integer id) {
-        return imagemProdutoRepository.findByProdutoId(id).stream()
-                .map(ImagemProduto::getImagem)
-                .collect(Collectors.toList());
+    // Método para salvar as imagens no diretório e registrar o caminho
+    public void salvarImagemProduto(MultipartFile file, Integer produtoId) throws IOException {
+        Produto produto = produtoRepository.findById(produtoId).orElse(null);
+        if (produto != null) {
+            // Gerar o nome da imagem
+            String nomeImagem = produtoId + "_" + file.getOriginalFilename();
+            File imagemFile = new File(caminhoImagens + "/" + nomeImagem);
+
+            // Salvar a imagem no diretório
+            file.transferTo(imagemFile);
+
+            // Salvar o caminho da imagem no banco de dados
+            ImagemProduto imagemProduto = new ImagemProduto();
+            imagemProduto.setProduto(produto);
+            imagemProduto.setCaminho(nomeImagem);
+            imagemProdutoRepository.save(imagemProduto);
+        }
+    }
+
+    // Método para recuperar a imagem padrão do produto
+    public String recuperarImagem(Integer id) {
+        Produto produto = produtoRepository.findById(id).orElse(null);
+        if (produto != null && produto.getImagemPadrao() != null) {
+            return "/imagens_produto/" + produto.getImagemPadrao();
+        }
+        return null;
+    }
+
+    // Listar todas as imagens de um produto
+    public List<String> listarImagensProduto(Integer id) {
+        List<ImagemProduto> imagens = imagemProdutoRepository.findByProdutoId(id);
+        return imagens.stream()
+                .map(imagemProduto -> "/imagens_produto/" + imagemProduto.getCaminho())
+                .toList();
+    }
+
+    // Salvar o produto com suas imagens
+    @Transactional
+    public Produto salvarProdutoComImagens(Produto produto, List<ImagemProduto> imagens) {
+        Produto produtoSalvo = produtoRepository.save(produto);
+        for (ImagemProduto imagemProduto : imagens) {
+            imagemProduto.setProduto(produtoSalvo);
+            imagemProdutoRepository.save(imagemProduto);
+        }
+        return produtoSalvo;
     }
 }
-

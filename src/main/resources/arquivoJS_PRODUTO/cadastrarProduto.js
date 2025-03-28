@@ -38,13 +38,54 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Salvar imagens no modal e atualizar a imagem principal
+    // Salvar imagens no modal e atualizar a imagem principal
     window.salvarImagens = function () {
         if (imagensSelecionadas.length > 0) {
-            let reader = new FileReader();
-            reader.onload = function (e) {
-                imagemPrincipal.src = e.target.result;
-            };
-            reader.readAsDataURL(imagensSelecionadas[0]);
+            let formData = new FormData();
+            formData.append("imagem", imagensSelecionadas[0]); // Adiciona a primeira imagem como principal
+
+            // Se o backend aceitar várias imagens, envie todas
+            imagensSelecionadas.forEach((file) => {
+                formData.append("imagens", file); // Aqui você pode enviar todas as imagens
+            });
+
+            fetch("http://localhost:8080/produtos", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Erro ao salvar o produto.");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Produto e imagens salvos com sucesso", data);
+
+                    // Exibe a imagem principal após salvar o produto
+                    imagemPrincipal.src = "http://localhost:8080" + data.imagemPrincipal;
+
+                    // Exibe as outras imagens no carrossel
+                    const imagensCarrossel = data.imagens.map((imgPath, index) => {
+                        let divItem = document.createElement("div");
+                        divItem.classList.add("carousel-item");
+                        if (index === 0) divItem.classList.add("active");
+
+                        let img = document.createElement("img");
+                        img.src = "http://localhost:8080" + imgPath;
+                        img.classList.add("d-block", "w-100");
+                        img.style.height = "400px";
+                        img.style.objectFit = "cover";
+
+                        divItem.appendChild(img);
+                        return divItem;
+                    });
+
+                    // Limpa o carrossel anterior e adiciona as novas imagens
+                    carouselInner.innerHTML = "";
+                    imagensCarrossel.forEach(item => carouselInner.appendChild(item));
+                })
+                .catch(error => console.error("Erro ao salvar o produto:", error));
         }
 
         let modalEl = document.getElementById("modalImagem");
@@ -54,10 +95,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Confirmação do cancelamento
-    window.confirmarCancelamento = function () {
-        window.location.href = "listarProduto.html";
-    };
 
     // Função para salvar o produto
     window.confirmarSalvar = function () {
@@ -94,9 +131,10 @@ document.addEventListener("DOMContentLoaded", function () {
         formData.append("descricao", descricao);
         formData.append("avaliacao", parseFloat(avaliacao));
 
-        if (imagensSelecionadas.length > 0) {
-            formData.append("imagem", imagensSelecionadas[0]); // Apenas a primeira imagem será enviada como principal
-        }
+        // Adicionar todas as imagens ao FormData
+        imagensSelecionadas.forEach((imagem) => {
+            formData.append("imagens", imagem);  // Envia todas as imagens
+        });
 
         fetch("http://localhost:8080/produtos", {
             method: "POST",
@@ -115,7 +153,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error("Erro ao cadastrar produto:", error));
     };
 
-
     // Formatar o campo de preço em moeda brasileira (R$)
     document.getElementById("preco").addEventListener("input", function () {
         let valor = this.value.replace(/[^0-9]/g, "");
@@ -133,3 +170,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (valor > 5) this.value = "5";
     });
 });
+
+// Função para cancelar a operação
+window.confirmarCancelamento = function () {
+    alert("Operação cancelada.");
+};

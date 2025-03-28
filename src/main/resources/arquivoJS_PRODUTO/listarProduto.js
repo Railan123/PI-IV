@@ -5,8 +5,16 @@ document.addEventListener("DOMContentLoaded", function () {
 // Função para carregar os produtos na tabela
 function carregarProdutos() {
     fetch("http://localhost:8080/produtos")
-        .then(response => response.json())
-        .then(produtos => preencherTabela(produtos))
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Erro na resposta da API: " + response.statusText);
+            }
+            return response.json();
+        })
+        .then(produtos => {
+            console.log("Produtos recebidos:", produtos); // Log para depuração
+            preencherTabela(produtos);
+        })
         .catch(error => console.error("Erro ao buscar produtos:", error));
 }
 
@@ -16,7 +24,7 @@ function preencherTabela(produtos) {
     tabela.innerHTML = "";
 
     if (produtos.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="7" class="text-center">Nenhum produto encontrado.</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="6" class="text-center">Nenhum produto encontrado.</td></tr>`;
         return;
     }
 
@@ -44,22 +52,54 @@ function preencherTabela(produtos) {
     });
 }
 
-
 // Função para visualizar detalhes do produto em um modal
 function visualizarProduto(id) {
     fetch(`http://localhost:8080/produtos/${id}`)
         .then(response => response.json())
         .then(produto => {
+            // Exibe o nome do produto no modal
             document.getElementById("produtoNomeModal").innerText = produto.nome;
             document.getElementById("produtoQuantidadeModal").innerText = produto.quantidadeEstoque;
             document.getElementById("produtoPrecoModal").innerText = produto.preco.toFixed(2);
 
-            if (produto.imagem_padrao) {
-                document.getElementById("produtoImagemModal").src = `data:image/png;base64,${produto.imagem_padrao}`;
+            // Exibindo a imagem principal do produto
+            const imagemPrincipal = document.getElementById("produtoImagemModal");
+            if (produto.imagemPadrao) {
+                // Se a imagem principal estiver configurada, exibe-a
+                imagemPrincipal.src = `http://localhost:8080/imagens_produto/${produto.imagemPadrao}`;
             } else {
-                document.getElementById("produtoImagemModal").src = "https://via.placeholder.com/300?text=Sem+Imagem";
+                // Caso contrário, exibe uma imagem de placeholder
+                imagemPrincipal.src = "https://via.placeholder.com/300?text=Sem+Imagem";
             }
 
+            // Carregar as imagens adicionais no carrossel
+            const carouselInner = document.getElementById("carouselInner");
+            carouselInner.innerHTML = ""; // Limpa o carrossel anterior
+
+            if (produto.imagensAdicionais && produto.imagensAdicionais.length > 0) {
+                produto.imagensAdicionais.forEach((img, index) => {
+                    // Cria o item do carrossel
+                    let divItem = document.createElement("div");
+                    divItem.classList.add("carousel-item");
+                    if (img.padrao) divItem.classList.add("active"); // A imagem padrão é a primeira (ativa)
+
+                    // Cria a tag <img> para o carrossel
+                    let imgElement = document.createElement("img");
+                    imgElement.src = `http://localhost:8080/imagens_produto/${img.caminho}`;  // Ajusta o caminho da imagem
+                    imgElement.classList.add("d-block", "w-100");
+                    imgElement.style.height = "400px";
+                    imgElement.style.objectFit = "cover";
+
+                    // Adiciona a imagem ao item do carrossel
+                    divItem.appendChild(imgElement);
+                    carouselInner.appendChild(divItem);
+                });
+            } else {
+                // Caso não haja imagens adicionais, exibe uma imagem padrão
+                carouselInner.innerHTML = "<div class='carousel-item active'><img src='https://via.placeholder.com/300?text=Sem+Imagem' class='d-block w-100'></div>";
+            }
+
+            // Exibe o modal
             let modal = new bootstrap.Modal(document.getElementById("modalVisualizarProduto"));
             modal.show();
         })
