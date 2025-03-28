@@ -1,5 +1,4 @@
 package com.PI_IV.service;
-
 import com.PI_IV.DAO.InterfaceImagemProduto;
 import com.PI_IV.DAO.InterfaceProduto;
 import com.PI_IV.model.ImagemProduto;
@@ -22,7 +21,7 @@ public class ProdutoService {
 
     // Caminho configurado no application.properties
     @Value("${caminho.imagens}")
-    private String caminhoImagens;  // Este valor será "C:/Users/Administrador/PI-IV/imagens_produto" quando configurado no application.properties
+    private String caminhoImagens;
 
     public ProdutoService(InterfaceProduto produtoRepository, InterfaceImagemProduto imagemProdutoRepository) {
         this.produtoRepository = produtoRepository;
@@ -39,28 +38,12 @@ public class ProdutoService {
         return produtos;
     }
 
-    public List<Produto> listarAtivos() {
-        return produtoRepository.findByAtivoTrue();
-    }
-
     public Optional<Produto> buscarPorId(Integer id) {
         return produtoRepository.findById(id);
     }
 
     public Produto salvar(Produto produto) {
         return produtoRepository.save(produto);
-    }
-
-    public Produto atualizar(Integer id, Produto produto) {
-        return produtoRepository.findById(id)
-                .map(existingProduto -> {
-                    existingProduto.setNome(produto.getNome());
-                    existingProduto.setPreco(produto.getPreco());
-                    existingProduto.setDescricao(produto.getDescricao());
-                    existingProduto.setQuantidadeEstoque(produto.getQuantidadeEstoque());
-                    return produtoRepository.save(existingProduto);
-                })
-                .orElse(null);
     }
 
     public Optional<Produto> ativarDesativar(Integer id) {
@@ -71,35 +54,23 @@ public class ProdutoService {
                 });
     }
 
-    // Método para salvar as imagens no diretório e registrar o caminho
+    // Salvar imagens no diretório e registrar o caminho no banco
+    // Salvar imagens no diretório e registrar o caminho no banco
     public void salvarImagemProduto(MultipartFile file, Integer produtoId) throws IOException {
         Produto produto = produtoRepository.findById(produtoId).orElse(null);
         if (produto != null) {
-            // Gerar o nome da imagem
             String nomeImagem = produtoId + "_" + file.getOriginalFilename();
             File imagemFile = new File(caminhoImagens + "/" + nomeImagem);
-
-            // Salvar a imagem no diretório
             file.transferTo(imagemFile);
 
-            // Salvar o caminho da imagem no banco de dados
             ImagemProduto imagemProduto = new ImagemProduto();
             imagemProduto.setProduto(produto);
-            imagemProduto.setCaminho(nomeImagem);
+            imagemProduto.setCaminho(nomeImagem); // Corrigido para salvar somente o nome do arquivo, sem o caminho extra
             imagemProdutoRepository.save(imagemProduto);
         }
     }
 
-    // Método para recuperar a imagem padrão do produto
-    public String recuperarImagem(Integer id) {
-        Produto produto = produtoRepository.findById(id).orElse(null);
-        if (produto != null && produto.getImagemPadrao() != null) {
-            return "/imagens_produto/" + produto.getImagemPadrao();
-        }
-        return null;
-    }
 
-    // Listar todas as imagens de um produto
     public List<String> listarImagensProduto(Integer id) {
         List<ImagemProduto> imagens = imagemProdutoRepository.findByProdutoId(id);
         return imagens.stream()
@@ -107,7 +78,6 @@ public class ProdutoService {
                 .toList();
     }
 
-    // Salvar o produto com suas imagens
     @Transactional
     public Produto salvarProdutoComImagens(Produto produto, List<ImagemProduto> imagens) {
         Produto produtoSalvo = produtoRepository.save(produto);

@@ -66,7 +66,7 @@ function visualizarProduto(id) {
             const imagemPrincipal = document.getElementById("produtoImagemModal");
             if (produto.imagemPadrao) {
                 // Se a imagem principal estiver configurada, exibe-a
-                imagemPrincipal.src = `http://localhost:8080/imagens_produto/${produto.imagemPadrao}`;
+                imagemPrincipal.src = `http://localhost:8080/${produto.imagemPadrao}`;
             } else {
                 // Caso contrário, exibe uma imagem de placeholder
                 imagemPrincipal.src = "https://via.placeholder.com/300?text=Sem+Imagem";
@@ -85,7 +85,7 @@ function visualizarProduto(id) {
 
                     // Cria a tag <img> para o carrossel
                     let imgElement = document.createElement("img");
-                    imgElement.src = `http://localhost:8080/imagens_produto/${img.caminho}`;  // Ajusta o caminho da imagem
+                    imgElement.src = `http://localhost:8080/${img.caminho}`;  // Ajusta o caminho da imagem
                     imgElement.classList.add("d-block", "w-100");
                     imgElement.style.height = "400px";
                     imgElement.style.objectFit = "cover";

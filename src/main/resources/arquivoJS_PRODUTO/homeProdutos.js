@@ -10,8 +10,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 listaProdutos.innerHTML = "";
 
                 produtos.forEach(produto => {
+                    console.log(produto.imagemPadrao);
                     let imagemSrc = produto.imagemPadrao
-                        ? `http://localhost:8080/imagens_produto/${produto.imagemPadrao}`
+                        ? `http://localhost:8080/${produto.imagemPadrao}`
                         : "http://localhost:8080/imagens_produto/placeholder.png";
 
                     listaProdutos.innerHTML += `
@@ -43,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // Exibir a imagem principal do produto
                 if (produto.imagemPadrao) {
-                    document.getElementById("produtoImagemModal").src = `http://localhost:8080/imagens_produto/${produto.imagemPadrao}`;
+                    document.getElementById("produtoImagemModal").src = `http://localhost:8080/${produto.imagemPadrao}`;
                 } else {
                     document.getElementById("produtoImagemModal").src = "https://via.placeholder.com/300?text=Sem+Imagem";
                 }
@@ -60,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             imagemElement.classList.add("active");
                         }
                         imagemElement.innerHTML = `
-                        <img src="http://localhost:8080/imagens_produto/${imagem.caminho}" class="d-block w-100" alt="${imagem.nome}">
+                        <img src="http://localhost:8080/${imagem.caminho}" class="d-block w-100" alt="${imagem.nome}">
                     `;
                         carrosselImagens.appendChild(imagemElement);
                     });

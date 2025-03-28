@@ -15,15 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/produtos")
 public class ProdutoController {
 
     private final ProdutoService service;
-    // Caminho fixo para o diretório de imagens fora de src/main/resources
-    private static final String UPLOAD_DIR = "C:/Users/Administrador/PI-IV/imagens_produto/";  // Caminho configurado para imagens
+    private static final String UPLOAD_DIR = "C:/Users/Administrador/PI-IV/imagens_produto/";
 
     public ProdutoController(ProdutoService service) {
         this.service = service;
@@ -37,11 +35,8 @@ public class ProdutoController {
     @GetMapping("/{id}")
     public ResponseEntity<Produto> buscarProdutoPorId(@PathVariable Integer id) {
         Optional<Produto> produto = service.buscarPorId(id);
-        if (produto.isPresent()) {
-            return ResponseEntity.ok(produto.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        return produto.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PostMapping(consumes = "multipart/form-data")
@@ -58,7 +53,7 @@ public class ProdutoController {
                 quantidadeEstoque == null || quantidadeEstoque < 0 ||
                 descricao == null || descricao.isEmpty() ||
                 avaliacao == null || avaliacao < 1 || avaliacao > 5) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         Produto produto = new Produto();
@@ -69,13 +64,11 @@ public class ProdutoController {
         produto.setAvaliacao(avaliacao);
 
         try {
-            // Criar diretório fixo se não existir
             File pastaRaiz = new File(UPLOAD_DIR);
             if (!pastaRaiz.exists()) {
                 Files.createDirectories(pastaRaiz.toPath());
             }
 
-            // Criar pasta do produto dentro da pasta fixa
             String nomeProdutoFormatado = nome.replaceAll("[^a-zA-Z0-9]", "_");
             File diretorioProduto = new File(UPLOAD_DIR + nomeProdutoFormatado);
             Files.createDirectories(diretorioProduto.toPath());
@@ -83,27 +76,21 @@ public class ProdutoController {
             List<ImagemProduto> imagensProduto = new ArrayList<>();
             String caminhoImagemPrincipal = "";
 
-            // Processar imagens
             if (imagens != null && !imagens.isEmpty()) {
                 int i = 1;
                 for (MultipartFile imagem : imagens) {
                     if (!imagem.isEmpty()) {
-                        // Garante nomes únicos para as imagens
                         String nomeArquivo = "imagem_" + i + "_" + System.currentTimeMillis() + ".png";
                         File arquivoImagem = new File(diretorioProduto, nomeArquivo);
-
-                        // Transferir arquivo para o diretório correto
                         imagem.transferTo(arquivoImagem);
 
-                        // Criar objeto de ImagemProduto
                         ImagemProduto imagemProduto = new ImagemProduto();
                         imagemProduto.setNome(imagem.getOriginalFilename());
                         imagemProduto.setCaminho("imagens_produto/" + nomeProdutoFormatado + "/" + nomeArquivo);
-                        imagemProduto.setPadrao(i == 1);  // A primeira imagem é a padrão
+                        imagemProduto.setPadrao(i == 1);
 
                         imagensProduto.add(imagemProduto);
 
-                        // Definir a primeira imagem como a principal
                         if (i == 1) {
                             caminhoImagemPrincipal = imagemProduto.getCaminho();
                         }
@@ -113,42 +100,39 @@ public class ProdutoController {
                 }
             }
 
-            // Atualizar a imagem principal do produto no banco
             produto.setImagemPadrao(caminhoImagemPrincipal);
-
-            // Salvar produto com imagens no banco de dados
             Produto produtoSalvo = service.salvarProdutoComImagens(produto, imagensProduto);
             return ResponseEntity.status(HttpStatus.CREATED).body(produtoSalvo);
 
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @GetMapping("/imagens/{produtoNome}/{imagemNome}")
     @ResponseBody
-    public byte[] exibirImagem(@PathVariable String produtoNome, @PathVariable String imagemNome) throws IOException {
-        // Caminho da imagem no diretório correto
-        File imagem = new File(UPLOAD_DIR + produtoNome + "/" + imagemNome);
-        return java.nio.file.Files.readAllBytes(imagem.toPath());
+    public ResponseEntity<byte[]> exibirImagem(@PathVariable String produtoNome, @PathVariable String imagemNome) {
+        try {
+            File imagem = new File(UPLOAD_DIR + produtoNome + "/" + imagemNome);
+            if (!imagem.exists()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            return ResponseEntity.ok(Files.readAllBytes(imagem.toPath()));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PutMapping("/{id}/ativarDesativar")
     public ResponseEntity<Produto> ativarDesativarProduto(@PathVariable Integer id) {
         Optional<Produto> produtoAtualizado = service.ativarDesativar(id);
-        if (produtoAtualizado.isPresent()) {
-            return ResponseEntity.ok(produtoAtualizado.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        return produtoAtualizado.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @GetMapping("/imagens/{produtoId}")
     public ResponseEntity<List<String>> listarImagensProduto(@PathVariable Integer produtoId) {
-        List<String> imagens = service.listarImagensProduto(produtoId);
-        return ResponseEntity.ok(imagens);
+        return ResponseEntity.ok(service.listarImagensProduto(produtoId));
     }
-
-
 }
